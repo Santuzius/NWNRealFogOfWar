@@ -45,6 +45,7 @@ public class RfowSettings : ModSettings
     public static bool WildLifeTabVisible = true;
     private static bool needMemoryStorage = true;
     public static bool DoAudioCheck; // Whether the audio check should be performed for fogged sounds.
+    public static bool DelayAlertsUntilSeen;
 
 
     // public static bool doFilthReveal = true; // Whether filth should be automatically revealed when its created
@@ -155,6 +156,9 @@ public class RfowSettings : ModSettings
             VolumeMufflingModifier = row.Slider(VolumeMufflingModifier, 0f, 1f);
         }
 
+        addGap(row);
+        row.CheckboxLabeled("delayAlertsUntilSeen".Translate(), ref DelayAlertsUntilSeen,
+            "delayAlertsUntilSeenDesc".Translate());
 
         // row.CheckboxLabeled("doFilthReveal".Translate(), ref RFOWSettings.doFilthReveal, doFilthRevealDesc".Translate());
 
@@ -184,6 +188,7 @@ public class RfowSettings : ModSettings
             DoAudioCheck = false;
             AudioSourceRange = 30;
             VolumeMufflingModifier = 0.5f;
+            DelayAlertsUntilSeen = false;
             applySettings();
         }
 
@@ -248,6 +253,7 @@ public class RfowSettings : ModSettings
         Scribe_Values.Look(ref DoAudioCheck, "doAudioCheck");
         Scribe_Values.Look(ref AudioSourceRange, "audioSourceRange", 30);
         Scribe_Values.Look(ref VolumeMufflingModifier, "volumeMufflingModifier", 0.5f);
+        Scribe_Values.Look(ref DelayAlertsUntilSeen, "delayAlertsUntilSeen");
         //Scribe_Values.Look(ref doFilthReveal, "doFilthReveal", true);
 
         applySettings();

@@ -29,7 +29,6 @@ public static class FoWThingUtils
 
     public static bool FowIsVisible(this Thing _this, bool forRender = false)
     {
-        bool result;
         if (!_this.Spawned)
         {
             return true;
@@ -120,5 +119,10 @@ public static class FoWThingUtils
         var result = compMainComponent?.compHiddenable;
 
         return result;
+    }
+
+    public static PendingAlertManager GetPendingAlertManager(this Map _this)
+    {
+        return _this.GetComponent<PendingAlertManager>();
     }
 }

@@ -60,4 +60,6 @@
   <doFilthRevealDesc>Filth spawned under fog will remain invisible until you reveal that tile.</doFilthRevealDesc>
   <onlyOutsideColony>Only show fog on non-colony maps</onlyOutsideColony>
   <onlyOutsideColonyDesc>Fog of war will only have an effect on maps that are not colony maps</onlyOutsideColonyDesc>
+  <delayAlertsUntilSeen>Delay alerts until enemy/event is spotted</delayAlertsUntilSeen>
+  <delayAlertsUntilSeenDesc>When enabled, threat and event alerts (raids, visitors, etc.) will be delayed until you actually see the entity causing the alert. This simulates that your pawns can't know about threats they haven't discovered yet. Alerts will trigger immediately when the entity becomes visible.</delayAlertsUntilSeenDesc>
 </LanguageData>

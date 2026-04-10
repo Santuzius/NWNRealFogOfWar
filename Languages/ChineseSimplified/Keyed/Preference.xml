@@ -59,4 +59,6 @@
   <doFilthRevealDesc>在雾中生成的污秽物将保持隐身状态，直到您揭开该瓦片。</doFilthRevealDesc>
   <onlyOutsideColony>只在非殖民地地图上显示战争迷雾</onlyOutsideColony>
   <onlyOutsideColonyDesc>战争迷雾只会对非殖民地地图产生影响</onlyOutsideColonyDesc>
+  <delayAlertsUntilSeen>延迟警报直到发现敌人/事件</delayAlertsUntilSeen>
+  <delayAlertsUntilSeenDesc>启用后，威胁和事件警报（突袭、访客等）将被延迟，直到您真正看到引起警报的实体。这将模拟你的小兵无法知道他们尚未发现的威胁。当实体可见时，警报将立即触发。</delayAlertsUntilSeenDesc>
 </LanguageData>

@@ -5,21 +5,24 @@ namespace RimWorldRealFoW.Detours;
 
 public static class ReservationUtility
 {
-    public static void CanReserve_Postfix(this Verse.Pawn p, ref bool __result, LocalTargetInfo target)
+    extension(Verse.Pawn p)
     {
-        if (__result && p.Faction is { IsPlayer: true } && target.HasThing &&
-            target.Thing.def.category != ThingCategory.Pawn)
+        public void CanReserve_Postfix(ref bool __result, LocalTargetInfo target)
         {
-            __result = target.Thing.FowIsVisible();
+            if (__result && p.Faction is { IsPlayer: true } && target.HasThing &&
+                target.Thing.def.category != ThingCategory.Pawn)
+            {
+                __result = target.Thing.FowIsVisible();
+            }
         }
-    }
 
-    public static void CanReserveAndReach_Postfix(this Verse.Pawn p, ref bool __result, LocalTargetInfo target)
-    {
-        if (__result && p.Faction is { IsPlayer: true } && target.HasThing &&
-            target.Thing.def.category != ThingCategory.Pawn)
+        public void CanReserveAndReach_Postfix(ref bool __result, LocalTargetInfo target)
         {
-            __result = target.Thing.FowIsVisible();
+            if (__result && p.Faction is { IsPlayer: true } && target.HasThing &&
+                target.Thing.def.category != ThingCategory.Pawn)
+            {
+                __result = target.Thing.FowIsVisible();
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using RimWorld;
+using RimWorldRealFoW.Utils;
 using Verse;
 
 namespace RimWorldRealFoW;
@@ -132,24 +133,26 @@ public class CompHideFromPlayer : ThingSubComp
             return;
         }
 
+        var wasHidden = compHiddenable?.hidden ?? false;
+
         if (isSaveable && !saveCompressible)
         {
             if (thingParent.Faction is not { IsPlayer: true })
             {
                 if (isPawn && !hasPartShownToPlayer() || !isPawn && !seenByPlayer && !hasPartShownToPlayer())
                 {
-                    compHiddenable.Hide();
+                    compHiddenable?.Hide();
                 }
                 else
                 {
                     seenByPlayer = true;
-                    compHiddenable.Show();
+                    compHiddenable?.Show();
                 }
             }
             else
             {
                 seenByPlayer = true;
-                compHiddenable.Show();
+                compHiddenable?.Show();
             }
         }
         else
@@ -160,8 +163,17 @@ public class CompHideFromPlayer : ThingSubComp
             }
 
             seenByPlayer = true;
-            compHiddenable.Show();
+            compHiddenable?.Show();
         }
+
+        // Trigger pending alert if this thing was just revealed to the player
+        if (!wasHidden || compHiddenable.hidden || !RfowSettings.DelayAlertsUntilSeen)
+        {
+            return;
+        }
+
+        var pendingAlertManager = map.GetPendingAlertManager();
+        pendingAlertManager?.TriggerPendingAlertForThing(thingParent);
     }
 
     private bool hasPartShownToPlayer()

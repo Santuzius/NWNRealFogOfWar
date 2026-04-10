@@ -62,4 +62,6 @@
   <doFilthRevealDesc>Les saletés engendrées par le brouillard resteront invisibles jusqu'à ce que vous révéliez cette tuile.</doFilthRevealDesc>
   <onlyOutsideColony>N'afficher le brouillard que sur les cartes sans colonie</onlyOutsideColony>
   <onlyOutsideColonyDesc>Le brouillard de guerre n'aura d'effet que sur les cartes qui ne sont pas des cartes de colonies.</onlyOutsideColonyDesc>
+  <delayAlertsUntilSeen>Retarder les alertes jusqu'à ce que l'ennemi/événement soit repéré</delayAlertsUntilSeen>
+  <delayAlertsUntilSeenDesc>Lorsque cette option est activée, les alertes de menaces et d'événements (raids, visiteurs, etc.) seront retardées jusqu'à ce que vous voyiez réellement l'entité à l'origine de l'alerte. Cela simule le fait que vos pions ne peuvent pas connaître les menaces qu'ils n'ont pas encore découvertes. Les alertes se déclenchent immédiatement lorsque l'entité devient visible.</delayAlertsUntilSeenDesc>
 </LanguageData>

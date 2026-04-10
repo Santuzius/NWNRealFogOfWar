@@ -79,13 +79,47 @@ internal class HarmonyPatches
             return false;
         }
 
-        if (let.def == LetterDefOf.ThreatBig && RfowSettings.HideThreatBig)
+        if (let.def != LetterDefOf.ThreatBig || !RfowSettings.HideThreatBig)
+        {
+            return let.def != LetterDefOf.ThreatSmall || !RfowSettings.HideThreatSmall;
+        }
+
+        // If DelayAlertsUntilSeen is enabled, defer the letter only if thing is NOT visible
+        if (!RfowSettings.DelayAlertsUntilSeen || !let.lookTargets.PrimaryTarget.HasThing)
         {
             return false;
         }
 
-        return let.def != LetterDefOf.ThreatSmall || !RfowSettings.HideThreatSmall;
+        var thing = let.lookTargets.PrimaryTarget.Thing;
+        if (thing?.Map == null)
+        {
+            return let.def != LetterDefOf.ThreatSmall || !RfowSettings.HideThreatSmall;
+        }
+
+        // Only defer if thing is not visible
+        if (!thing.FowIsVisible())
+        {
+            var pendingAlertManager = thing.Map.GetPendingAlertManager();
+            if (pendingAlertManager == null)
+            {
+                return let.def != LetterDefOf.ThreatSmall || !RfowSettings.HideThreatSmall;
+            }
+
+            // Store current game speed before slowdown
+            var currentSpeed = Find.TickManager.CurTimeSpeed;
+            RealFoWModStarter.LogMessage(
+                $"Deferring ThreatBig letter for {thing.Label}, stored speed: {currentSpeed}");
+            pendingAlertManager.RegisterPendingLetter(let, thing, currentSpeed);
+            return false; // Block the letter for now
+        }
+
+        // Thing IS visible, allow letter through normally
+        RealFoWModStarter.LogMessage($"ThreatBig letter visible, allowing through: {thing.Label}");
+        return true;
+
+        // DelayAlertsUntilSeen disabled or nothing, just block as normal
     }
+
     // Registers sustainers in a dictionary to be later removed when Thing is hidden
 
     public static class Patch_RegisterSustainer
@@ -158,6 +192,34 @@ internal class HarmonyPatches
             if (__result is { info.volumeFactor: <= 0f })
             {
                 __result.End();
+            }
+        }
+    }
+
+    // Prevent forced slowdown when deferring ThreatBig letters
+    public static class Patch_LetterStackReceiveLetter
+    {
+        [HarmonyPostfix]
+        public static void Postfix(Letter let)
+        {
+            // This postfix runs AFTER LetterStack.ReceiveLetter completes
+            // Only called if the letter was NOT deferred (i.e., ReceiveLetterPrefix returned true)
+
+            if (!RfowSettings.DelayAlertsUntilSeen)
+            {
+                return;
+            }
+
+            if (let != null && (let.def != LetterDefOf.ThreatBig || !let.lookTargets.PrimaryTarget.HasThing))
+            {
+                return;
+            }
+
+            var thing = let?.lookTargets.PrimaryTarget.Thing;
+            if (thing?.Map != null && thing.FowIsVisible() && PendingAlertManager.IsReplayingLetter)
+            {
+                RealFoWModStarter.LogMessage(
+                    $"LetterStack.ReceiveLetter completed for visible deferred threat letter: {thing.Label}");
             }
         }
     }

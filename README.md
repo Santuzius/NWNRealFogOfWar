@@ -1,15 +1,15 @@
 # [(NWN) Real Fog of War (Continued)](https://steamcommunity.com/sharedfiles/filedetails/?id=3391128917)
 
-![Image](https://i.postimg.cc/1X4HT06h/Info.png)
+![Image](https://img.litet.net/logos/Info.png)
 
 Update of Luca De Petrillos mod https://steamcommunity.com/sharedfiles/filedetails/?id=2560931731
 
 - Reported to be compatible with CAI 5000 - Advanced AI + Fog Of War as long as the fog of war in that mod is turned off
  - Wall and ceiling cameras can now be placed over other items, using the same mechanic as wall-mounted lights. Thanks to ODevil who made the original patch!
 
-![Image](https://i.postimg.cc/8csH3dWV/Notice.png)
+![Image](https://img.litet.net/logos/Notice.png)
 	
-![Image](https://i.postimg.cc/hvhrw8xB/Original-Description.png)
+![Image](https://img.litet.net/logos/OriginalDescription.png)
 
 #  Original feature 
 
@@ -32,15 +32,15 @@ Update of Luca De Petrillos mod https://steamcommunity.com/sharedfiles/filedetai
 
 #  New stuff
 
-![Image](https://i.postimg.cc/jSN4gbNM/xsz4cBX.png)
+![Image](https://img.litet.net/xsz4cBX.png)
 
-![Image](https://i.postimg.cc/RCk3PnTk/DOv7EBE.png)
+![Image](https://img.litet.net/DOv7EBE.png)
 
-![Image](https://i.postimg.cc/g2dxpFQS/edLM0pX.png)
+![Image](https://img.litet.net/edLM0pX.png)
 
-![Image](https://i.postimg.cc/0jBzxzgw/6T54lIo.png)
+![Image](https://img.litet.net/6T54lIo.png)
 
-![Image](https://i.postimg.cc/RVZYDNVK/qMcT6Dq.png)
+![Image](https://img.litet.net/qMcT6Dq.png)
 
 #  New feature 
 
@@ -79,7 +79,7 @@ SaberVS7 for the 1.4 update
 YAYO for the forked version new building.
 inbae for korean translation (though newer update to this mod led to some missing translation) I'll appreciate any updated translation.
 
-![Image](https://i.postimg.cc/x8qR7GH9/Reporting-Issues.png)
+![Image](https://img.litet.net/logos/ReportingIssues.png)
 
 
 
@@ -93,4 +93,4 @@ inbae for korean translation (though newer update to this mod led to some missin
 
  
 
-[![Image](https://img.shields.io/github/v/release/emipa606/NWNRealFogOfWar?label=latest%20version&style=plastic&color=9f1111&labelColor=black)](https://steamcommunity.com/sharedfiles/filedetails/changelog/3391128917) | tags:  tactics,  vision
+[![Image](https://img.shields.io/github/v/release/emipa606/NWNRealFogOfWar?label=latest%20version&style=plastic&color=9f1111&labelColor=black)](https://steamcommunity.com/sharedfiles/filedetails/changelog/3391128917) | tags: vision, tactics

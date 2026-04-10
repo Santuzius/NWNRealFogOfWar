@@ -274,6 +274,7 @@ public class RealFoWModStarter : Mod
         );
         LogMessage("Prefixed method SoundStarter_TrySpawnSustainer.");
 
+
         if (!ModsConfig.IsActive("jaxe.bubbles"))
         {
             return;

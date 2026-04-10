@@ -1,5 +1,9 @@
 # Changelog for NWNRealFogOfWar
 
+1.6.5 - Added option to show Big threat letters when they are spotted instead of hiding them
+Used DeepL to update translations for ChineseSimplified, French, German
+
+
 1.6.4 - All things should now be visible on colony maps when the disable fow on colony maps is selected
 
 
