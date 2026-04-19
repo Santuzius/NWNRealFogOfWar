@@ -35,6 +35,7 @@ namespace RimWorldRealFoW;
 public class RealFoWModStarter : Mod
 {
     private static readonly Harmony harmony;
+    public static bool CanBeServant;
 
     static RealFoWModStarter()
     {
@@ -48,6 +49,7 @@ public class RealFoWModStarter : Mod
         RfowSettings.CurrentVersion = VersionFromManifest.GetVersionFromModMetaData(content.ModMetaData);
         LongEventHandler.QueueLongEvent(InjectComponents, "Real Fog of War - Init.", false, null);
         GetSettings<RfowSettings>();
+        CanBeServant = ModLister.GetActiveModWithIdentifier("ThatThing.Mycohazard", true) != null;
     }
 
     public static void LogMessage(string message)

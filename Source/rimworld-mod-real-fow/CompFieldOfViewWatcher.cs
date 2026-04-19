@@ -307,12 +307,14 @@ public class CompFieldOfViewWatcher : ThingSubComp
                     livePawnCalculateFov(position, 0.5f, forceUpdate, Faction.OfPlayer);
                     break;
                 case ThingType.Pawn:
+                case ThingType.Animal when RealFoWModStarter.CanBeServant &&
+                                           pawn.health?.hediffSet?.hediffs.Any(hediff =>
+                                               hediff.def.defName.StartsWith("DE_Servant")) == true:
                     livePawnCalculateFov(position, 1, forceUpdate, faction);
                     break;
-                case ThingType.Animal when pawn.playerSettings == null
-                                           || pawn.playerSettings.Master == null
-                                           || pawn.training == null
-                                           || !pawn.training.HasLearned(TrainableDefOf.Release):
+                case ThingType.Animal when (pawn.playerSettings?.Master == null
+                                            || pawn.training == null
+                                            || !pawn.training.HasLearned(TrainableDefOf.Release)):
                     livePawnCalculateFov(position,
                         0,
                         forceUpdate,

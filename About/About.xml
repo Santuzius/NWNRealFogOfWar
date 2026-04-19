@@ -27,6 +27,7 @@ Update of Luca De Petrillos mod https://steamcommunity.com/sharedfiles/filedetai
 
 - Reported to be compatible with CAI 5000 - Advanced AI + Fog Of War as long as the fog of war in that mod is turned off
  - Wall and ceiling cameras can now be placed over other items, using the same mechanic as wall-mounted lights. Thanks to ODevil who made the original patch!
+- Added option to show threat letters when enemies are spotted instead of just hiding them.
 
 [img]https://img.litet.net/logos/Notice.png[/img]
 
@@ -106,5 +107,5 @@ inbae for korean translation (though newer update to this mod led to some missin
 [/list] 
 
 [url=https://steamcommunity.com/sharedfiles/filedetails/changelog/3391128917][img]https://img.shields.io/github/v/release/emipa606/NWNRealFogOfWar?label=latest%20version&amp;style=plastic&amp;color=9f1111&amp;labelColor=black[/img][/url] | tags: vision, tactics</description>
-  <modVersion IgnoreIfNoMatchingField="True">1.6.5</modVersion>
+  <modVersion IgnoreIfNoMatchingField="True">1.6.6</modVersion>
 </ModMetaData>
