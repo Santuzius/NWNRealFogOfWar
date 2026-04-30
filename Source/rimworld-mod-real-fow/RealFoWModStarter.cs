@@ -276,6 +276,21 @@ public class RealFoWModStarter : Mod
         );
         LogMessage("Prefixed method SoundStarter_TrySpawnSustainer.");
 
+        if (ModLister.OdysseyInstalled)
+        {
+            var landingEndedMethod = AccessTools.Method(typeof(WorldComponent_GravshipController), "LandingEnded");
+            if (landingEndedMethod != null)
+            {
+                harmony.Patch(
+                    landingEndedMethod,
+                    postfix: new HarmonyMethod(typeof(HarmonyPatches).GetMethod(nameof(HarmonyPatches.LandingEndedPostfix))));
+                LogMessage("Postfixed method WorldComponent_GravshipController_LandingEnded.");
+            }
+            else
+            {
+                Log.Warning("[Real FoW] Could not find WorldComponent_GravshipController.LandingEnded method.");
+            }
+        }
 
         if (!ModsConfig.IsActive("jaxe.bubbles"))
         {

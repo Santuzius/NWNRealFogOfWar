@@ -64,4 +64,6 @@
   <onlyOutsideColonyDesc>Le brouillard de guerre n'aura d'effet que sur les cartes qui ne sont pas des cartes de colonies.</onlyOutsideColonyDesc>
   <delayAlertsUntilSeen>Retarder les alertes jusqu'à ce que l'ennemi/événement soit repéré</delayAlertsUntilSeen>
   <delayAlertsUntilSeenDesc>Lorsque cette option est activée, les alertes de menaces et d'événements (raids, visiteurs, etc.) seront retardées jusqu'à ce que vous voyiez réellement l'entité à l'origine de l'alerte. Cela simule le fait que vos pions ne peuvent pas connaître les menaces qu'ils n'ont pas encore découvertes. Les alertes se déclenchent immédiatement lorsque l'entité devient visible.</delayAlertsUntilSeenDesc>
+  <clearFogDuringTargeting>Brouillard clair pendant le décollage, le ciblage et l'atterrissage du gravship</clearFogDuringTargeting>
+  <clearFogDuringTargetingDesc>Lorsqu'il est activé, le brouillard de guerre est temporairement caché pendant le décollage, la sélection du point d'atterrissage et l'atterrissage d'un gravship.</clearFogDuringTargetingDesc>
 </LanguageData>

@@ -46,6 +46,7 @@ public class RfowSettings : ModSettings
     private static bool needMemoryStorage = true;
     public static bool DoAudioCheck; // Whether the audio check should be performed for fogged sounds.
     public static bool DelayAlertsUntilSeen;
+    public static bool ClearFogDuringTargeting = true;
 
 
     // public static bool doFilthReveal = true; // Whether filth should be automatically revealed when its created
@@ -159,6 +160,11 @@ public class RfowSettings : ModSettings
         addGap(row);
         row.CheckboxLabeled("delayAlertsUntilSeen".Translate(), ref DelayAlertsUntilSeen,
             "delayAlertsUntilSeenDesc".Translate());
+        if (ModLister.OdysseyInstalled)
+        {
+            row.CheckboxLabeled("clearFogDuringTargeting".Translate(), ref ClearFogDuringTargeting,
+                "clearFogDuringTargetingDesc".Translate());
+        }
 
         // row.CheckboxLabeled("doFilthReveal".Translate(), ref RFOWSettings.doFilthReveal, doFilthRevealDesc".Translate());
 
@@ -189,6 +195,7 @@ public class RfowSettings : ModSettings
             AudioSourceRange = 30;
             VolumeMufflingModifier = 0.5f;
             DelayAlertsUntilSeen = false;
+            ClearFogDuringTargeting = true;
             applySettings();
         }
 
@@ -254,6 +261,7 @@ public class RfowSettings : ModSettings
         Scribe_Values.Look(ref AudioSourceRange, "audioSourceRange", 30);
         Scribe_Values.Look(ref VolumeMufflingModifier, "volumeMufflingModifier", 0.5f);
         Scribe_Values.Look(ref DelayAlertsUntilSeen, "delayAlertsUntilSeen");
+        Scribe_Values.Look(ref ClearFogDuringTargeting, "clearFogDuringTargeting", true);
         //Scribe_Values.Look(ref doFilthReveal, "doFilthReveal", true);
 
         applySettings();

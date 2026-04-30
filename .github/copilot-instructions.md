@@ -10,6 +10,7 @@
 - **Adjustable Vision Range:** Mod settings allow tweaks in vision range to suit different playstyles or companion mods.
 - **Integration with Other Mods:** Features like night vision are supported by apparel from vanilla and extended mods.
 - **Surveillance Enhancements:** Includes cameras and watchtowers to expand the FoV for strategic information gathering.
+- **Clear Fog During Targeting:** An option to temporarily hide the fog of war while selecting a target location on the map, making it easier to choose landing sites for gravships and shuttles on fogged maps.
 - **Customizable Features and Bugfixes:** Offers adjustable features, bug fixes, and performance improvements, integrating changes from forked versions.
 
 ## Coding Patterns and Conventions

@@ -61,4 +61,6 @@
   <onlyOutsideColonyDesc>Fog of War wirkt sich nur auf Karten aus, die keine Koloniekarten sind</onlyOutsideColonyDesc>
   <delayAlertsUntilSeen>Verzögerung von Alarmen bis Feind/Ereignis gesichtet wird</delayAlertsUntilSeen>
   <delayAlertsUntilSeenDesc>Wenn diese Funktion aktiviert ist, werden Bedrohungs- und Ereigniswarnungen (Überfälle, Besucher, etc.) so lange verzögert, bis man das Wesen, das die Warnung verursacht, tatsächlich sieht. Dadurch wird simuliert, dass Ihre Bauern nichts von Bedrohungen wissen können, die sie noch nicht entdeckt haben. Alarme werden sofort ausgelöst, wenn die Entität sichtbar wird.</delayAlertsUntilSeenDesc>
+  <clearFogDuringTargeting>Klarer Nebel beim Starten, Zielen und Landen von Gravschiffen</clearFogDuringTargeting>
+  <clearFogDuringTargetingDesc>Wenn diese Funktion aktiviert ist, wird der Nebel des Krieges vorübergehend ausgeblendet, während du startest, den Landeplatz auswählst und ein Gravschiff landest.</clearFogDuringTargetingDesc>
 </LanguageData>

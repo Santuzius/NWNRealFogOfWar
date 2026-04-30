@@ -120,6 +120,15 @@ internal class HarmonyPatches
         // DelayAlertsUntilSeen disabled or nothing, just block as normal
     }
 
+    [HarmonyPostfix]
+    public static void LandingEndedPostfix()
+    {
+        if (RfowSettings.ClearFogDuringTargeting)
+        {
+            Find.CurrentMap?.mapDrawer?.RegenerateEverythingNow();
+        }
+    }
+
     // Registers sustainers in a dictionary to be later removed when Thing is hidden
 
     public static class Patch_RegisterSustainer

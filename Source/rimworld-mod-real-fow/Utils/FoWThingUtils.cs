@@ -39,6 +39,13 @@ public static class FoWThingUtils
             return true;
         }
 
+        if (ModLister.OdysseyInstalled && RfowSettings.ClearFogDuringTargeting &&
+            WorldComponent_GravshipController.CutsceneInProgress ||
+            Find.GravshipController?.LandingAreaConfirmationInProgress == true)
+        {
+            return true;
+        }
+
         if (!_this.def.isSaveable || _this.def.saveCompressible)
         {
             return forRender || _this.Map != null && _this.fowInKnownCell();

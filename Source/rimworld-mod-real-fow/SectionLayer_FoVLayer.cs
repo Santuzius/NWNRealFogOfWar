@@ -43,7 +43,25 @@ public class SectionLayerFoVLayer : SectionLayer
         relevantChangeTypes = FoWDef.RealFogOfWar | MapMeshFlagDefOf.FogOfWar;
     }
 
-    public override bool Visible => DebugViewSettings.drawFog && (!Map.IsPlayerHome || !RfowSettings.OnlyOutsideColony);
+    public override bool Visible
+    {
+        get
+        {
+            if (!DebugViewSettings.drawFog)
+            {
+                return false;
+            }
+
+            if (RfowSettings.OnlyOutsideColony && Map.IsPlayerHome)
+            {
+                return false;
+            }
+
+            return !ModLister.OdysseyInstalled || !RfowSettings.ClearFogDuringTargeting ||
+                   !WorldComponent_GravshipController.CutsceneInProgress &&
+                   Find.GravshipController?.LandingAreaConfirmationInProgress != true;
+        }
+    }
 
     private static void makeBaseGeometry(Section section, LayerSubMesh sm, AltitudeLayer altitudeLayer)
     {

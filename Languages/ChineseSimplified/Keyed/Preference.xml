@@ -61,4 +61,6 @@
   <onlyOutsideColonyDesc>战争迷雾只会对非殖民地地图产生影响</onlyOutsideColonyDesc>
   <delayAlertsUntilSeen>延迟警报直到发现敌人/事件</delayAlertsUntilSeen>
   <delayAlertsUntilSeenDesc>启用后，威胁和事件警报（突袭、访客等）将被延迟，直到您真正看到引起警报的实体。这将模拟你的小兵无法知道他们尚未发现的威胁。当实体可见时，警报将立即触发。</delayAlertsUntilSeenDesc>
+  <clearFogDuringTargeting>重力飞船起飞、瞄准和着陆时的清晰雾气</clearFogDuringTargeting>
+  <clearFogDuringTargetingDesc>启用后，在您起飞、选择着陆点和重力飞船着陆时，战争迷雾会暂时隐藏。</clearFogDuringTargetingDesc>
 </LanguageData>
