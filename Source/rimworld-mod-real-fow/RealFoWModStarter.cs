@@ -283,7 +283,7 @@ public class RealFoWModStarter : Mod
             {
                 harmony.Patch(
                     landingEndedMethod,
-                    postfix: new HarmonyMethod(typeof(HarmonyPatches).GetMethod(nameof(HarmonyPatches.LandingEndedPostfix))));
+                    postfix: new HarmonyMethod(typeof(HarmonyPatches).GetMethod(nameof(LandingEndedPostfix))));
                 LogMessage("Postfixed method WorldComponent_GravshipController_LandingEnded.");
             }
             else
@@ -298,7 +298,7 @@ public class RealFoWModStarter : Mod
         }
 
         var drawBubble = AccessTools.Method(
-            "Bubbles.Interface.Bubbler:DrawBubble"
+            "Bubbles.Core.Bubbler:DrawBubble"
         );
         if (drawBubble != null)
         {

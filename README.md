@@ -7,6 +7,7 @@ Update of Luca De Petrillos mod https://steamcommunity.com/sharedfiles/filedetai
 - Reported to be compatible with CAI 5000 - Advanced AI + Fog Of War as long as the fog of war in that mod is turned off
  - Wall and ceiling cameras can now be placed over other items, using the same mechanic as wall-mounted lights. Thanks to ODevil who made the original patch!
 - Added option to show threat letters when enemies are spotted instead of just hiding them.
+- Added option to not show fog of war during gravship takeoff and landing
 
 ![Image](https://img.litet.net/logos/Notice.png)
 	

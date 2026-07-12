@@ -20,7 +20,7 @@ internal static class InteractionBubblesPatch
 
         var type = mod.assemblies.loadedAssemblies
             .FirstOrDefault(a => a.GetName().Name == "Bubbles")?
-            .GetType("Bubbles.Interface.Bubbler");
+            .GetType("Bubbles.Core.Bubbler");
 
         if (type == null)
         {
