@@ -36,6 +36,8 @@ public class RealFoWModStarter : Mod
 {
     private static readonly Harmony harmony;
     public static bool CanBeServant;
+    public static bool DubsMintMinimapLoaded;
+    public static FieldInfo DubsMintMinimap_MainTabWindow_MiniMap_dirtyGirls;
 
     static RealFoWModStarter()
     {
@@ -48,8 +50,24 @@ public class RealFoWModStarter : Mod
     {
         RfowSettings.CurrentVersion = VersionFromManifest.GetVersionFromModMetaData(content.ModMetaData);
         LongEventHandler.QueueLongEvent(InjectComponents, "Real Fog of War - Init.", false, null);
+        LongEventHandler.ExecuteWhenFinished(InjectDubsMinimapPatch);
         GetSettings<RfowSettings>();
         CanBeServant = ModLister.GetActiveModWithIdentifier("ThatThing.Mycohazard", true) != null;
+        DubsMintMinimapLoaded = ModLister.GetActiveModWithIdentifier("dubwise.dubsmintminimap", true) != null;
+        if (!DubsMintMinimapLoaded)
+        {
+            return;
+        }
+
+        DubsMintMinimap_MainTabWindow_MiniMap_dirtyGirls =
+            AccessTools.Field(AccessTools.TypeByName("DubsMintMinimap.MainTabWindow_MiniMap"), "dirtyGirls");
+        if (DubsMintMinimap_MainTabWindow_MiniMap_dirtyGirls != null)
+        {
+            return;
+        }
+
+        LogMessage("Failed to find field 'dirtyGirls' in DubsMintMinimap.MainTabWindow_MiniMap");
+        DubsMintMinimapLoaded = false;
     }
 
     public static void LogMessage(string message)
@@ -84,6 +102,7 @@ public class RealFoWModStarter : Mod
                     || category == ThingCategory.Item
                     || category == ThingCategory.Filth
                     || category == ThingCategory.Gas
+                    || category == ThingCategory.Plant
                     //|| category == ThingCategory.Projectile
                     || thingDef.IsBlueprint
                 ))
@@ -312,6 +331,41 @@ public class RealFoWModStarter : Mod
         {
             Log.Warning("RFow is active but can't patch DrawBubble method");
         }
+    }
+
+    private static void InjectDubsMinimapPatch()
+    {
+        if (!ModsConfig.IsActive("dubwise.dubsmintminimap"))
+        {
+            return;
+        }
+
+        var h = new Harmony("com.github.lukakama.rimworldmodrealfow.dubs");
+        var windowType = AccessTools.TypeByName("DubsMintMinimap.MainTabWindow_MiniMap");
+        if (windowType == null)
+        {
+            Log.Warning("Dubs Mint Minimap is active but can't find MainTabWindow_MiniMap type");
+            return;
+        }
+
+        var foggedMethods = AccessTools.GetDeclaredMethods(windowType)
+            .Where(info => info.Name == "Fogged").ToList();
+        if (!foggedMethods.Any())
+        {
+            Log.Warning("Dubs Mint Minimap is active but can't patch Fogged method");
+            return;
+        }
+
+        foreach (var foggedMethod in foggedMethods)
+        {
+            h.Patch(foggedMethod, postfix:
+                foggedMethod.GetParameters().Length == 1
+                    ? new HarmonyMethod(typeof(HarmonyPatches).GetMethod(nameof(FoggedThingPostfix)))
+                    : new HarmonyMethod(typeof(HarmonyPatches).GetMethod(nameof(FoggedCellPostfix)))
+            );
+        }
+
+        LogMessage("Dubs Mint Minimap is active. Patched");
     }
 
     private static void patchMethod(Type sourceType, Type targetType, string methodName)

@@ -48,6 +48,14 @@ public class RfowSettings : ModSettings
     public static bool DelayAlertsUntilSeen;
     public static bool ClearFogDuringTargeting = true;
 
+    private static bool treesBlockSightValue;
+
+    public static bool TreesBlockSight
+    {
+        get => treesBlockSightValue;
+        private set => treesBlockSightValue = value;
+    }
+
 
     // public static bool doFilthReveal = true; // Whether filth should be automatically revealed when its created
 
@@ -166,6 +174,26 @@ public class RfowSettings : ModSettings
                 "clearFogDuringTargetingDesc".Translate());
         }
 
+        // Only allow changing trees block sight setting when there's no active game
+        var isGameActive = Current.ProgramState == ProgramState.Playing;
+
+        if (isGameActive)
+        {
+            GUI.enabled = false;
+            row.CheckboxLabeled("treesBlockSight".Translate(), ref treesBlockSightValue,
+                "treesBlockSightDesc".Translate());
+            GUI.enabled = true;
+
+            Text.Font = GameFont.Tiny;
+            row.Label("treesBlockSight_RequiresReload".Translate());
+            Text.Font = GameFont.Small;
+        }
+        else
+        {
+            row.CheckboxLabeled("treesBlockSight".Translate(), ref treesBlockSightValue,
+                "treesBlockSightDesc".Translate());
+        }
+
         // row.CheckboxLabeled("doFilthReveal".Translate(), ref RFOWSettings.doFilthReveal, doFilthRevealDesc".Translate());
 
         if (row.ButtonText("RFWreset".Translate(), widthPct: 0.5f))
@@ -196,6 +224,7 @@ public class RfowSettings : ModSettings
             VolumeMufflingModifier = 0.5f;
             DelayAlertsUntilSeen = false;
             ClearFogDuringTargeting = true;
+            TreesBlockSight = false;
             applySettings();
         }
 
@@ -262,6 +291,7 @@ public class RfowSettings : ModSettings
         Scribe_Values.Look(ref VolumeMufflingModifier, "volumeMufflingModifier", 0.5f);
         Scribe_Values.Look(ref DelayAlertsUntilSeen, "delayAlertsUntilSeen");
         Scribe_Values.Look(ref ClearFogDuringTargeting, "clearFogDuringTargeting", true);
+        Scribe_Values.Look(ref treesBlockSightValue, "treesBlockSight");
         //Scribe_Values.Look(ref doFilthReveal, "doFilthReveal", true);
 
         applySettings();

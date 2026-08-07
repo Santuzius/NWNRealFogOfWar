@@ -31,6 +31,48 @@ internal class HarmonyPatches
         return t.FowIsVisible();
     }
 
+    //For dubs minimap
+    [HarmonyPostfix]
+    public static void FoggedThingPostfix(ref bool __result, Thing thing)
+    {
+        if (thing == null)
+        {
+            return;
+        }
+
+        if (__result)
+        {
+            return;
+        }
+
+        __result = !thing.FowIsVisible();
+    }
+
+    [HarmonyPostfix]
+    public static void FoggedCellPostfix(ref bool __result, IntVec3 c, Map map)
+    {
+        if (__result)
+        {
+            return;
+        }
+
+        if (!RealFoWModStarter.DubsMintMinimapLoaded)
+        {
+            return;
+        }
+
+        var mapComponentSeenFog = map.GetMapComponentSeenFog();
+        if (mapComponentSeenFog == null)
+        {
+            return;
+        }
+
+        if (!mapComponentSeenFog.knownCells[map.cellIndices.CellToIndex(c)])
+        {
+            __result = true;
+        }
+    }
+
     //For Silhouette
     [HarmonyPrefix]
     public static bool ShouldDrawSilhouettePrefix(Thing thing)

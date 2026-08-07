@@ -1,3 +1,4 @@
+using RimWorld;
 using Verse;
 
 namespace RimWorldRealFoW;
@@ -9,7 +10,10 @@ public class CompMainComponent : ThingComp
     public CompFieldOfViewWatcher compFieldOfViewWatcher;
     public CompHiddenable compHiddenable;
     public CompHideFromPlayer compHideFromPlayer;
+    private CompTreeViewBlocker compTreeViewBlocker;
     private CompViewBlockerWatcher compViewBlockerWatcher;
+    private bool isPlant;
+    private bool isTreePlant;
     private bool setup;
 
     private void performSetup()
@@ -22,6 +26,8 @@ public class CompMainComponent : ThingComp
         setup = true;
 
         var category = parent.def.category;
+        isPlant = category == ThingCategory.Plant;
+        isTreePlant = isPlant && parent is Plant plant && plant.def.plant.IsTree;
 
         compComponentsPositionTracker = new CompComponentsPositionTracker
         {
@@ -61,6 +67,16 @@ public class CompMainComponent : ThingComp
                 mainComponent = this
             };
         }
+
+        // Always create tree view blocker for trees - the setting is checked at runtime
+        if (isTreePlant)
+        {
+            compTreeViewBlocker = new CompTreeViewBlocker
+            {
+                parent = parent,
+                mainComponent = this
+            };
+        }
     }
 
     public override void PostSpawnSetup(bool respawningAfterLoad)
@@ -75,6 +91,7 @@ public class CompMainComponent : ThingComp
 
         compViewBlockerWatcher?.PostSpawnSetup(respawningAfterLoad);
         compFieldOfViewWatcher?.PostSpawnSetup(respawningAfterLoad);
+        compTreeViewBlocker?.PostSpawnSetup(respawningAfterLoad);
     }
 
     public override void CompTick()
@@ -86,6 +103,7 @@ public class CompMainComponent : ThingComp
         compHideFromPlayer.CompTick();
         compViewBlockerWatcher?.CompTick();
         compFieldOfViewWatcher?.CompTick();
+        compTreeViewBlocker?.CompTick();
     }
 
     public override void CompTickRare()
@@ -97,6 +115,7 @@ public class CompMainComponent : ThingComp
         compHideFromPlayer.CompTickRare();
         compViewBlockerWatcher?.CompTickRare();
         compFieldOfViewWatcher?.CompTickRare();
+        compTreeViewBlocker?.CompTickRare();
     }
 
     public override void ReceiveCompSignal(string signal)
@@ -108,6 +127,7 @@ public class CompMainComponent : ThingComp
         compHideFromPlayer.ReceiveCompSignal(signal);
         compViewBlockerWatcher?.ReceiveCompSignal(signal);
         compFieldOfViewWatcher?.ReceiveCompSignal(signal);
+        compTreeViewBlocker?.ReceiveCompSignal(signal);
     }
 
     public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
@@ -119,6 +139,7 @@ public class CompMainComponent : ThingComp
         compHideFromPlayer.PostDeSpawn(map);
         compViewBlockerWatcher?.PostDeSpawn(map);
         compFieldOfViewWatcher?.PostDeSpawn(map);
+        compTreeViewBlocker?.PostDeSpawn(map);
     }
 
     public override void PostExposeData()
@@ -131,6 +152,7 @@ public class CompMainComponent : ThingComp
 
         compViewBlockerWatcher?.PostExposeData();
         compFieldOfViewWatcher?.PostExposeData();
+        compTreeViewBlocker?.PostExposeData();
         if (!Scribe.saver.savingForDebug)
         {
             return;
@@ -141,10 +163,12 @@ public class CompMainComponent : ThingComp
         var hasCompHideFromPlayer = compHideFromPlayer != null;
         var hasCompViewBlockerWatcher = compViewBlockerWatcher != null;
         var hasCompFieldOfViewWatcher = compFieldOfViewWatcher != null;
+        var hasCompTreeViewBlocker = compTreeViewBlocker != null;
         Scribe_Values.Look(ref hasCompComponentsPositionTracker, "hasCompComponentsPositionTracker");
         Scribe_Values.Look(ref hasCompHiddenable, "hasCompHiddenable");
         Scribe_Values.Look(ref hasCompHideFromPlayer, "hasCompHideFromPlayer");
         Scribe_Values.Look(ref hasCompViewBlockerWatcher, "hasCompViewBlockerWatcher");
         Scribe_Values.Look(ref hasCompFieldOfViewWatcher, "hasCompFieldOfViewWatcher");
+        Scribe_Values.Look(ref hasCompTreeViewBlocker, "hasCompTreeViewBlocker");
     }
 }

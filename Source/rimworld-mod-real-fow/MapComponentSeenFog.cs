@@ -32,6 +32,7 @@ public class MapComponentSeenFog : MapComponent
 
     //Camera building
     private readonly List<Building_SurveillanceCamera> surveillanceCameras = [];
+    public readonly List<CompTreeViewBlocker>[] treeViewBlockerGrid;
     public readonly bool[] viewBlockerCells;
     private int currentGameTick;
 
@@ -76,6 +77,7 @@ public class MapComponentSeenFog : MapComponent
         compHideFromPlayerGrid = new List<CompHideFromPlayer>[mapCellLength];
         compHideFromPlayerGridCount = new byte[mapCellLength];
         compAffectVisionGrid = new List<CompAffectVision>[mapCellLength];
+        treeViewBlockerGrid = new List<CompTreeViewBlocker>[mapCellLength];
         for (var i = 0; i < mapCellLength; i++)
         {
             idxToCellCache[i] = CellIndicesUtility.IndexToCell(i, mapSizeX);
@@ -83,6 +85,7 @@ public class MapComponentSeenFog : MapComponent
             compHideFromPlayerGrid[i] = new List<CompHideFromPlayer>(16);
             compHideFromPlayerGridCount[i] = 0;
             compAffectVisionGrid[i] = new List<CompAffectVision>(16);
+            treeViewBlockerGrid[i] = new List<CompTreeViewBlocker>(4);
 
             playerVisibilityChangeTick[i] = 0;
         }
@@ -249,6 +252,22 @@ public class MapComponentSeenFog : MapComponent
         }
     }
 
+    public void RegisterTreeViewBlocker(CompTreeViewBlocker comp, int x, int z)
+    {
+        if (x >= 0 && z >= 0 && x < mapSizeX && z < mapSizeZ)
+        {
+            treeViewBlockerGrid[(z * mapSizeX) + x].Add(comp);
+        }
+    }
+
+    public void DeregisterTreeViewBlocker(CompTreeViewBlocker comp, int x, int z)
+    {
+        if (x >= 0 && z >= 0 && x < mapSizeX && z < mapSizeZ)
+        {
+            treeViewBlockerGrid[(z * mapSizeX) + x].Remove(comp);
+        }
+    }
+
     public void RegisterMineDesignation(Designation des)
     {
         var cell = des.target.Cell;
@@ -404,6 +423,18 @@ public class MapComponentSeenFog : MapComponent
         if (!knownCells[idx])
         {
             knownCells[idx] = true;
+            if (RealFoWModStarter.DubsMintMinimapLoaded)
+            {
+                var currentDirtyGirls =
+                    (bool[])RealFoWModStarter.DubsMintMinimap_MainTabWindow_MiniMap_dirtyGirls.GetValue(null);
+                if (currentDirtyGirls != null)
+                {
+                    currentDirtyGirls[idx] = true;
+                    RealFoWModStarter.DubsMintMinimap_MainTabWindow_MiniMap_dirtyGirls
+                        .SetValue(null, currentDirtyGirls);
+                }
+            }
+
             //knownFilthCells[idx] = true;
             if (initialized)
             {

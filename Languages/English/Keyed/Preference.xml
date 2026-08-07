@@ -64,4 +64,7 @@
   <delayAlertsUntilSeenDesc>When enabled, threat and event alerts (raids, visitors, etc.) will be delayed until you actually see the entity causing the alert. This simulates that your pawns can't know about threats they haven't discovered yet. Alerts will trigger immediately when the entity becomes visible.</delayAlertsUntilSeenDesc>
   <clearFogDuringTargeting>Clear fog during gravship takeoff, targeting and landing</clearFogDuringTargeting>
   <clearFogDuringTargetingDesc>When enabled, the fog of war is temporarily hidden while you are taking off, selecting landing spot and landing a gravship.</clearFogDuringTargetingDesc>
+  <treesBlockSight>Trees block line of sight</treesBlockSight>
+  <treesBlockSightDesc>When enabled, fully grown trees (over 50% growth) will block pawns' line of sight. Trees must be at least 50% grown to have this effect.</treesBlockSightDesc>
+  <treesBlockSight_RequiresReload>This setting requires reloading the save to take effect.</treesBlockSight_RequiresReload>
 </LanguageData>
