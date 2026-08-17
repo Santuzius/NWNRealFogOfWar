@@ -51,7 +51,7 @@ public class CompHideFromPlayer : ThingSubComp
         isOneCell = size is { z: 1, x: 1 };
         isSaveable = parent.def.isSaveable;
         saveCompressible = parent.def.saveCompressible;
-        compHiddenable = mainComponent.compHiddenable;
+        compHiddenable = mainComponent.Hiddenable;
         lastUpdateTick = Find.TickManager.TicksGame;
         UpdateVisibility(false);
     }
@@ -133,7 +133,7 @@ public class CompHideFromPlayer : ThingSubComp
             return;
         }
 
-        var wasHidden = compHiddenable?.hidden ?? false;
+        var wasHidden = compHiddenable?.Hidden ?? false;
 
         if (isSaveable && !saveCompressible)
         {
@@ -167,7 +167,7 @@ public class CompHideFromPlayer : ThingSubComp
         }
 
         // Trigger pending alert if this thing was just revealed to the player
-        if (!wasHidden || compHiddenable.hidden || !RfowSettings.DelayAlertsUntilSeen)
+        if (!wasHidden || compHiddenable is { Hidden: true } || !RfowSettings.DelayAlertsUntilSeen)
         {
             return;
         }

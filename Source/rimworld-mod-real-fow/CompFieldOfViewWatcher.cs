@@ -54,8 +54,6 @@ public class CompFieldOfViewWatcher : ThingSubComp
 
     private int lastPositionUpdateTick;
 
-    public int lastSightRange;
-
     private int lastStatcheckTick;
 
     private Map map;
@@ -95,18 +93,19 @@ public class CompFieldOfViewWatcher : ThingSubComp
 
     private WeatherManager weatherManager;
 
+    public int LastSightRange { get; private set; }
+
     public override void PostSpawnSetup(bool respawningAfterLoad)
     {
         setupDone = true;
         calculated = false;
         lastPosition = iv3Invalid;
-        lastSightRange = 0;
+        LastSightRange = 0;
         lastPeekDirections = null;
         viewMap1 = null;
         viewMap2 = null;
         viewRect = new CellRect(-1, -1, 0, 0);
         viewPositions = new IntVec3[5];
-        // this.attackVerbRange = new Dictionary<Verb, float>();
 
         compPowerTrader = parent.GetComp<CompPowerTrader>();
         compRefuelable = parent.GetComp<CompRefuelable>();
@@ -126,8 +125,6 @@ public class CompFieldOfViewWatcher : ThingSubComp
             pawnPather = pawn.pather;
 
             thingType = raceProps.Animal ? ThingType.Animal : ThingType.Pawn;
-
-            //this.def = this.parent.def;
 
             dayVisionEffectiveness = pawn.GetStatValue(FoWDef.DayVisionEffectiveness, false);
             nightVisionEffectiveness = pawn.GetStatValue(FoWDef.NightVisionEffectiveness);
@@ -154,7 +151,7 @@ public class CompFieldOfViewWatcher : ThingSubComp
         {
             RealFoWModStarter.LogMessage($"Removing unneeded FoV watcher from {parent.ThingID}");
             disabled = true;
-            mainComponent.compFieldOfViewWatcher = null;
+            mainComponent.FieldOfViewWatcher = null;
         }
 
         initMap();
@@ -240,11 +237,6 @@ public class CompFieldOfViewWatcher : ThingSubComp
                 UpdateFoV();
             }
         }
-    }
-
-    public override void CompTickRare()
-    {
-        base.CompTickRare();
     }
 
     private void initMap()
@@ -347,14 +339,14 @@ public class CompFieldOfViewWatcher : ThingSubComp
                         && !forceUpdate
                         && faction == lastFaction
                         && position == lastPosition
-                        && sightRange == lastSightRange)
+                        && sightRange == LastSightRange)
                     {
                         return;
                     }
 
                     calculated = true;
                     lastPosition = position;
-                    lastSightRange = sightRange;
+                    LastSightRange = sightRange;
                     if (lastFaction != faction)
                     {
                         if (lastFaction != null)
@@ -395,14 +387,14 @@ public class CompFieldOfViewWatcher : ThingSubComp
                         && !forceUpdate
                         && faction == lastFaction
                         && position == lastPosition
-                        && viewRadius == lastSightRange)
+                        && viewRadius == LastSightRange)
                     {
                         return;
                     }
 
                     calculated = true;
                     lastPosition = position;
-                    lastSightRange = viewRadius;
+                    LastSightRange = viewRadius;
                     if (lastFaction != faction)
                     {
                         if (lastFaction != null)
@@ -433,14 +425,14 @@ public class CompFieldOfViewWatcher : ThingSubComp
                         && !forceUpdate
                         && faction == lastFaction
                         && position == lastPosition
-                        && sightRange == lastSightRange)
+                        && sightRange == LastSightRange)
                     {
                         return;
                     }
 
                     calculated = true;
                     lastPosition = position;
-                    lastSightRange = sightRange;
+                    LastSightRange = sightRange;
                     if (lastFaction != faction)
                     {
                         if (lastFaction != null)
@@ -488,7 +480,6 @@ public class CompFieldOfViewWatcher : ThingSubComp
         }
 
         var viewRange = baseViewRange;
-        //float sightCapacity = ;
         initMap();
         var gameTick = Find.TickManager.TicksGame;
 
@@ -535,15 +526,13 @@ public class CompFieldOfViewWatcher : ThingSubComp
                     }
                 }
 
-                if (attackVerb != null)
+                if (attackVerb != null
+                    && attackVerb.verbProps.range > viewRange
+                    && attackVerb.verbProps.requireLineOfSight
+                    && attackVerb.EquipmentSource.def.IsRangedWeapon)
 
                 {
-                    if (attackVerb.verbProps.range > viewRange
-                        && attackVerb.verbProps.requireLineOfSight
-                        && attackVerb.EquipmentSource.def.IsRangedWeapon)
-                    {
-                        viewRange = attackVerb.verbProps.range;
-                    }
+                    viewRange = attackVerb.verbProps.range;
                 }
             }
 
@@ -677,7 +666,6 @@ public class CompFieldOfViewWatcher : ThingSubComp
         }
 
         int occupiedX;
-        // int oldViewRectIdx;
         for (occupiedX = occupiedRect.minX; occupiedX <= occupiedRect.maxX; occupiedX++)
         {
             int occupiedZ;
@@ -793,7 +781,7 @@ public class CompFieldOfViewWatcher : ThingSubComp
         }
         else
         {
-            var radius = lastSightRange;
+            var radius = LastSightRange;
             var peekDirection = lastPeekDirections;
 
             var num = mapSizeX;
@@ -1040,25 +1028,8 @@ public class CompFieldOfViewWatcher : ThingSubComp
     {
         if (thisPawn.Map != null)
         {
-            //nearByPawn.Clear();
             nearByPawn =
                 MapUtils.GetPawnsAround(thisPawn.Position, (int)(range * rangeMod), thisPawn.Map) as List<Pawn>;
-            // foreach (Thing thing in GenRadial.RadialDistinctThingsAround(
-            //     thisPawn.Position, thisPawn.Map, range * rangeMod, true))
-            /*foreach(Pawn other in MapUtils.GetPawnsAround(thisPawn.Position,(int)( range * rangeMod), thisPawn.Map))
-             {
-                 //Pawn other = thing as Pawn;
-                 if (other != null) {
-                     nearByPawn.Add(other);
-                     }
-             }
-             /*
-             this
-             foreach(Pawn other in thisPawn.Map.mapPawns.AllPawnsSpawned) {
-                 if(other.Position.DistanceTo(thisPawn.Position) < range * rangeMod) {
-                     nearByPawn.Add(other);
-                 }
-             }*/
         }
         else
         {
@@ -1070,8 +1041,6 @@ public class CompFieldOfViewWatcher : ThingSubComp
     {
         foreach (var other in nearByPawn)
         {
-            //Pawn other = thing as Pawn;
-            // if (other != null)
             if (other.Faction == faction
                 || other.pather is not { Moving: true }
                 || mapCompSeenFog.IsShown(faction, other.Position))
@@ -1080,7 +1049,6 @@ public class CompFieldOfViewWatcher : ThingSubComp
             }
 
             var otherSize = other.BodySize;
-            // MoteMaker.MakeWaterSplash(other.Position.ToVector3(), this.map, other.BodySize, 2);
             MapUtils.MakeSoundWave(
                 other.Position.ToVector3() + new Vector3(otherSize * 0.5f, 0, otherSize * 0.5f),
                 map,
@@ -1132,7 +1100,7 @@ public class CompFieldOfViewWatcher : ThingSubComp
                 && !forceUpdate
                 && faction == lastFaction
                 && position == lastPosition
-                && sightRange == lastSightRange
+                && sightRange == LastSightRange
                 && peekDirection == lastPeekDirections)
             {
                 return;
@@ -1140,7 +1108,7 @@ public class CompFieldOfViewWatcher : ThingSubComp
 
             calculated = true;
             lastPosition = position;
-            lastSightRange = sightRange;
+            LastSightRange = sightRange;
             lastPeekDirections = peekDirection;
             if (lastFaction != faction)
             {

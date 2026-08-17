@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using RimWorldRealFoW.Utils;
@@ -12,8 +13,6 @@ public class MapComponentSeenFog : MapComponent
     //New addition
 
     //Camera console
-    //int memoryStorage = 0;
-
     private readonly List<Building_CameraConsole> cameraConsoles = [];
     public readonly List<CompAffectVision>[] compAffectVisionGrid;
     private readonly List<CompHideFromPlayer>[] compHideFromPlayerGrid;
@@ -32,12 +31,11 @@ public class MapComponentSeenFog : MapComponent
 
     //Camera building
     private readonly List<Building_SurveillanceCamera> surveillanceCameras = [];
-    public readonly List<CompTreeViewBlocker>[] treeViewBlockerGrid;
+    private readonly List<CompTreeViewBlocker>[] treeViewBlockerGrid;
     public readonly bool[] viewBlockerCells;
     private int currentGameTick;
 
     private short[][] factionsShownCells;
-    public bool initialized;
 
     public bool[] knownCells;
 
@@ -93,9 +91,10 @@ public class MapComponentSeenFog : MapComponent
         foreach (var filth in map.listerThings.ThingsInGroup(ThingRequestGroup.Filth))
         {
             _ = map.cellIndices.CellToIndex(filth.Position);
-            //knownFilthCells[idx] = true;
         }
     }
+
+    public bool Initialized { get; private set; }
 
 
     public bool workingCameraConsole
@@ -111,12 +110,12 @@ public class MapComponentSeenFog : MapComponent
     public override void MapComponentTick()
     {
         currentGameTick = Find.TickManager.TicksGame;
-        if (initialized)
+        if (Initialized)
         {
             return;
         }
 
-        initialized = true;
+        Initialized = true;
         init();
     }
 
@@ -142,10 +141,9 @@ public class MapComponentSeenFog : MapComponent
 
     public int SurveillanceCameraCount()
     {
-        //Linq is cool but seem to have performance issure, a good old for loop seem beter
-        //return surveillanceCameras.Count((Building_SurveillanceCamera x)=>x.isPowered());
+        //Linq is cool but seem to have performance issue, a good old for loop seem better
         var count = 0;
-        foreach (var camera in surveillanceCameras)
+        foreach (var camera in surveillanceCameras.Where(c => c.IsPowered()))
         {
             if (camera.IsPowered())
             {
@@ -309,7 +307,6 @@ public class MapComponentSeenFog : MapComponent
         {
             var playerStartSpot = MapGenerator.PlayerStartSpot;
 
-            //int radius = Mathf.RoundToInt(DefDatabase<RealFoWModDefaultsDef>.GetNamed(RealFoWModDefaultsDef.DEFAULT_DEF_NAME, true).baseViewRange);
             var radius = RfowSettings.BaseViewRange;
             ShadowCaster.computeFieldOfViewWithShadowCasting(playerStartSpot.x, playerStartSpot.z, radius,
                 viewBlockerCells, map.Size.x, map.Size.z, false, null, null, null, knownCells, 0, 0, mapSizeX, null, 0,
@@ -325,9 +322,9 @@ public class MapComponentSeenFog : MapComponent
                 foreach (var this2 in map.thingGrid.ThingsListAtFast(c))
                 {
                     var compMainComponent = (CompMainComponent)this2.TryGetCompLocal(CompMainComponent.CompDef);
-                    if (compMainComponent is { compHideFromPlayer: not null })
+                    if (compMainComponent is { HideFromPlayer: not null })
                     {
-                        compMainComponent.compHideFromPlayer.ForceSeen();
+                        compMainComponent.HideFromPlayer.ForceSeen();
                     }
                 }
             }
@@ -346,11 +343,11 @@ public class MapComponentSeenFog : MapComponent
                 continue;
             }
 
-            compMainComponent2.compComponentsPositionTracker?.updatePosition();
+            compMainComponent2.ComponentsPositionTracker?.updatePosition();
 
-            compMainComponent2.compFieldOfViewWatcher?.UpdateFoV();
+            compMainComponent2.FieldOfViewWatcher?.UpdateFoV();
 
-            compMainComponent2.compHideFromPlayer?.UpdateVisibility(true);
+            compMainComponent2.HideFromPlayer?.UpdateVisibility(true);
         }
 
         if (map.Biome.defName == "OuterSpaceBiome" || RfowSettings.MapRevealAtStart)
@@ -358,7 +355,6 @@ public class MapComponentSeenFog : MapComponent
             for (var l = 0; l < mapCellLength; l++)
             {
                 knownCells[l] = true;
-                //knownFilthCells[l] = true;
             }
         }
 
@@ -380,14 +376,13 @@ public class MapComponentSeenFog : MapComponent
 
         ref var ptr = ref idxToCellCache[idx];
         knownCells[idx] = true;
-        //knownFilthCells[idx] = true;
         var designation = mineDesignationGrid[idx];
         if (designation != null && ptr.GetFirstMineable(map) == null)
         {
             designation.Delete();
         }
 
-        if (initialized)
+        if (Initialized)
         {
             setMapMeshDirtyFlag(idx);
             map.fertilityGrid.Drawer.SetDirty();
@@ -435,8 +430,7 @@ public class MapComponentSeenFog : MapComponent
                 }
             }
 
-            //knownFilthCells[idx] = true;
-            if (initialized)
+            if (Initialized)
             {
                 map.fertilityGrid.Drawer.SetDirty();
                 map.roofGrid.Drawer.SetDirty();
@@ -447,11 +441,11 @@ public class MapComponentSeenFog : MapComponent
             var hideMineGrid = designation != null && ptr.GetFirstMineable(map) == null;
             if (hideMineGrid)
             {
-                designation.Delete();
+                designation?.Delete();
             }
         }
 
-        if (initialized)
+        if (Initialized)
         {
             setMapMeshDirtyFlag(idx);
         }
@@ -479,7 +473,7 @@ public class MapComponentSeenFog : MapComponent
         }
 
         playerVisibilityChangeTick[idx] = currentGameTick;
-        if (initialized)
+        if (Initialized)
         {
             setMapMeshDirtyFlag(idx);
         }

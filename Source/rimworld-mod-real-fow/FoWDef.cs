@@ -4,7 +4,7 @@ using Verse;
 namespace RimWorldRealFoW;
 
 [DefOf]
-public class FoWDef
+public static class FoWDef
 {
     public static JobDef SurveilCameraConsole;
 

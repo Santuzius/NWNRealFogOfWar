@@ -200,7 +200,7 @@ public class CompTreeViewBlocker : ThingSubComp
         for (var k = 0; k < fowWatchers.Count; k++)
         {
             var compFieldOfViewWatcher = fowWatchers[k];
-            var lastSightRange = compFieldOfViewWatcher.lastSightRange;
+            var lastSightRange = compFieldOfViewWatcher.LastSightRange;
             if (lastSightRange <= 0)
             {
                 continue;

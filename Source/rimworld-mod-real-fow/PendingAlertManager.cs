@@ -186,15 +186,12 @@ public class PendingAlertManager : MapComponent
             try
             {
                 // Manually trigger the slowdown that was deferred
-                if (!pendingLetter.letter.def.forcedSlowdown)
+                if (!pendingLetter.letter.def.forcedSlowdown && pendingLetter.letter.def == LetterDefOf.ThreatBig)
                 {
                     // Only call if the letter itself wouldn't trigger it
                     // But for ThreatBig, we want to ensure it happens
-                    if (pendingLetter.letter.def == LetterDefOf.ThreatBig)
-                    {
-                        RealFoWModStarter.LogMessage("Triggering deferred slowdown for ThreatBig letter");
-                        Find.TickManager.slower.SignalForceNormalSpeedShort();
-                    }
+                    RealFoWModStarter.LogMessage("Triggering deferred slowdown for ThreatBig letter");
+                    Find.TickManager.slower.SignalForceNormalSpeedShort();
                 }
 
                 // Re-queue the letter to the LetterStack
@@ -226,7 +223,7 @@ public class PendingAlertManager : MapComponent
         trackedThings.Clear();
     }
 
-    private class PendingAlert
+    private sealed class PendingAlert
     {
         public LookTargets lookTargets;
         public string text;
@@ -234,7 +231,7 @@ public class PendingAlertManager : MapComponent
         public Thing triggeredByThing;
     }
 
-    private class PendingLetter
+    private sealed class PendingLetter
     {
         public Letter letter;
         public TimeSpeed storedGameSpeed;

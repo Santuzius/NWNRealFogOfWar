@@ -29,7 +29,7 @@ public static class DesignatorPrefix
     {
         var compHiddenable = t.TryGetCompHiddenable();
         bool result;
-        if (compHiddenable is { hidden: true })
+        if (compHiddenable is { Hidden: true })
         {
             __result = false;
             result = false;

@@ -35,7 +35,7 @@ public class CompComponentsPositionTracker : ThingSubComp
         var def = parent.def;
         size = def.size;
         isOneCell = size is { z: 1, x: 1 };
-        compHideFromPlayer = mainComponent.compHideFromPlayer;
+        compHideFromPlayer = mainComponent.HideFromPlayer;
         compAffectVision = parent.TryGetComp<CompAffectVision>();
         lastPosition = iv3Invalid;
         lastRotation = r4Invalid;

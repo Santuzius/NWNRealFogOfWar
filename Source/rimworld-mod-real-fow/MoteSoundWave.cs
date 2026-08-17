@@ -41,7 +41,6 @@ public class MoteSoundWave : Mote
 
         var scale = AgeSecs * velocity;
         Scale = scale;
-        //this.exactPosition += base.Map.waterInfo.GetWaterMovement(this.exactPosition) * deltaTime;
     }
 
     private float CalculatedIntensity()

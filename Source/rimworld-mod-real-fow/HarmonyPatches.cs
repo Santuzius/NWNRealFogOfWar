@@ -6,7 +6,7 @@ using Verse.Sound;
 
 namespace RimWorldRealFoW;
 
-internal class HarmonyPatches
+internal static class HarmonyPatches
 {
     //Pawn will not target thing that is hidden by the fog
     [HarmonyPrefix]
@@ -79,15 +79,6 @@ internal class HarmonyPatches
     {
         return thing.FowIsVisible();
     }
-
-    ////For no dynamic sections
-    //[HarmonyPrefix]
-    //public static bool DrawDynamicSectionsPrefix(Section __instance)
-    //{
-    //    __instance.DrawSection();
-    //    return false;
-    //}
-
 
     //For interaction bubbles
     [HarmonyPrefix]

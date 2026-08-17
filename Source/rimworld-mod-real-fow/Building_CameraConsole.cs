@@ -41,7 +41,6 @@ public class Building_CameraConsole : Building
 
     public static bool NeedWatcher()
     {
-        //return mapComp.SurveillanceCameraCount() >= 1;
         //Turret need the console to work so just keep it like this
         return true;
     }
@@ -68,7 +67,6 @@ public class Building_CameraConsole : Building
 
     protected override void DrawAt(Vector3 drawLoc, bool flip = false)
     {
-        //((ThingWithComps)this).Draw();
         base.DrawAt(drawLoc, flip);
         drawOverLay();
     }
@@ -90,18 +88,6 @@ public class Building_CameraConsole : Building
         breakdownableComp = GetComp<CompBreakdownable>();
         mapComp = map.GetMapComponentSeenFog();
         mapComp.RegisterCameraConsole(this);
-        //12 Possible graphic so
-        /*
-        for (int i = 0; i <= 12; i++)
-        {
-            workingGraphics.Add(GraphicDatabase.Get(
-                this.def.graphicData.graphicClass,
-                this.def.graphicData.texPath + "_FX" + (i).ToString(), ShaderDatabase.MoteGlow,
-                this.def.graphicData.drawSize,
-                this.DrawColor,
-                this.DrawColorTwo
-                ));
-        }*/
     }
 
     public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)

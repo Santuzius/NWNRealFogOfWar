@@ -189,7 +189,7 @@ public class ShadowCaster
 
                     if (secondCheck)
                     {
-                        if (!(num4 + (i * i) < r_r) || num2 < 0 || num < 0 || num2 >= maxX || num >= maxY ||
+                        if (num4 + (i * i) >= r_r || num2 < 0 || num < 0 || num2 >= maxX || num >= maxY ||
                             viewBlockerCells[num9])
                         {
                             if (!firstCheck)
@@ -213,7 +213,7 @@ public class ShadowCaster
                     }
 
                     secondCheck = true;
-                    firstCheck = !(num4 + (i * i) < r_r) || num2 < 0 || num < 0 || num2 >= maxX || num >= maxY ||
+                    firstCheck = num4 + (i * i) >= r_r || num2 < 0 || num < 0 || num2 >= maxX || num >= maxY ||
                                  viewBlockerCells[num9];
                 }
 
@@ -227,7 +227,7 @@ public class ShadowCaster
         }
     }
 
-    private class ColumnPortionQueue(int size)
+    private sealed class ColumnPortionQueue(int size)
     {
         private int currentPos;
 
@@ -278,12 +278,6 @@ public class ShadowCaster
             }
 
             return ref nodes[num];
-        }
-
-        public void Clear()
-        {
-            currentPos = 0;
-            nextInsertPos = 0;
         }
 
         public bool Empty()

@@ -134,7 +134,7 @@ public class SectionLayerFoVLayer : SectionLayer
 
         pawnFog ??= Map.GetMapComponentSeenFog();
 
-        if (pawnFog is not { initialized: true })
+        if (pawnFog is not { Initialized: true })
         {
             return;
         }

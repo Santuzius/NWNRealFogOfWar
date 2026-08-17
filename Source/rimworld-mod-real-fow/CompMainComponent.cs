@@ -6,15 +6,15 @@ namespace RimWorldRealFoW;
 public class CompMainComponent : ThingComp
 {
     public static readonly CompProperties CompDef = new(typeof(CompMainComponent));
-    public CompComponentsPositionTracker compComponentsPositionTracker;
-    public CompFieldOfViewWatcher compFieldOfViewWatcher;
-    public CompHiddenable compHiddenable;
-    public CompHideFromPlayer compHideFromPlayer;
     private CompTreeViewBlocker compTreeViewBlocker;
     private CompViewBlockerWatcher compViewBlockerWatcher;
-    private bool isPlant;
-    private bool isTreePlant;
     private bool setup;
+    public CompComponentsPositionTracker ComponentsPositionTracker { get; private set; }
+    public CompFieldOfViewWatcher FieldOfViewWatcher { get; set; }
+    public CompHiddenable Hiddenable { get; private set; }
+    public CompHideFromPlayer HideFromPlayer { get; private set; }
+    private bool IsPlant { get; set; }
+    private bool IsTreePlant { get; set; }
 
     private void performSetup()
     {
@@ -26,22 +26,22 @@ public class CompMainComponent : ThingComp
         setup = true;
 
         var category = parent.def.category;
-        isPlant = category == ThingCategory.Plant;
-        isTreePlant = isPlant && parent is Plant plant && plant.def.plant.IsTree;
+        IsPlant = category == ThingCategory.Plant;
+        IsTreePlant = IsPlant && parent is Plant plant && plant.def.plant.IsTree;
 
-        compComponentsPositionTracker = new CompComponentsPositionTracker
+        ComponentsPositionTracker = new CompComponentsPositionTracker
         {
             parent = parent,
             mainComponent = this
         };
 
-        compHiddenable = new CompHiddenable
+        Hiddenable = new CompHiddenable
         {
             parent = parent,
             mainComponent = this
         };
 
-        compHideFromPlayer = new CompHideFromPlayer
+        HideFromPlayer = new CompHideFromPlayer
         {
             parent = parent,
             mainComponent = this
@@ -61,7 +61,7 @@ public class CompMainComponent : ThingComp
             //||category == ThingCategory.Projectile
         )
         {
-            compFieldOfViewWatcher = new CompFieldOfViewWatcher
+            FieldOfViewWatcher = new CompFieldOfViewWatcher
             {
                 parent = parent,
                 mainComponent = this
@@ -69,7 +69,7 @@ public class CompMainComponent : ThingComp
         }
 
         // Always create tree view blocker for trees - the setting is checked at runtime
-        if (isTreePlant)
+        if (IsTreePlant)
         {
             compTreeViewBlocker = new CompTreeViewBlocker
             {
@@ -83,14 +83,14 @@ public class CompMainComponent : ThingComp
     {
         performSetup();
 
-        compComponentsPositionTracker.PostSpawnSetup(respawningAfterLoad);
+        ComponentsPositionTracker.PostSpawnSetup(respawningAfterLoad);
 
-        compHiddenable.PostSpawnSetup(respawningAfterLoad);
+        Hiddenable.PostSpawnSetup(respawningAfterLoad);
 
-        compHideFromPlayer.PostSpawnSetup(respawningAfterLoad);
+        HideFromPlayer.PostSpawnSetup(respawningAfterLoad);
 
         compViewBlockerWatcher?.PostSpawnSetup(respawningAfterLoad);
-        compFieldOfViewWatcher?.PostSpawnSetup(respawningAfterLoad);
+        FieldOfViewWatcher?.PostSpawnSetup(respawningAfterLoad);
         compTreeViewBlocker?.PostSpawnSetup(respawningAfterLoad);
     }
 
@@ -98,11 +98,11 @@ public class CompMainComponent : ThingComp
     {
         performSetup();
 
-        compComponentsPositionTracker.CompTick();
-        compHiddenable.CompTick();
-        compHideFromPlayer.CompTick();
+        ComponentsPositionTracker.CompTick();
+        Hiddenable.CompTick();
+        HideFromPlayer.CompTick();
         compViewBlockerWatcher?.CompTick();
-        compFieldOfViewWatcher?.CompTick();
+        FieldOfViewWatcher?.CompTick();
         compTreeViewBlocker?.CompTick();
     }
 
@@ -110,11 +110,11 @@ public class CompMainComponent : ThingComp
     {
         performSetup();
 
-        compComponentsPositionTracker.CompTickRare();
-        compHiddenable.CompTickRare();
-        compHideFromPlayer.CompTickRare();
+        ComponentsPositionTracker.CompTickRare();
+        Hiddenable.CompTickRare();
+        HideFromPlayer.CompTickRare();
         compViewBlockerWatcher?.CompTickRare();
-        compFieldOfViewWatcher?.CompTickRare();
+        FieldOfViewWatcher?.CompTickRare();
         compTreeViewBlocker?.CompTickRare();
     }
 
@@ -122,11 +122,11 @@ public class CompMainComponent : ThingComp
     {
         performSetup();
 
-        compComponentsPositionTracker.ReceiveCompSignal(signal);
-        compHiddenable.ReceiveCompSignal(signal);
-        compHideFromPlayer.ReceiveCompSignal(signal);
+        ComponentsPositionTracker.ReceiveCompSignal(signal);
+        Hiddenable.ReceiveCompSignal(signal);
+        HideFromPlayer.ReceiveCompSignal(signal);
         compViewBlockerWatcher?.ReceiveCompSignal(signal);
-        compFieldOfViewWatcher?.ReceiveCompSignal(signal);
+        FieldOfViewWatcher?.ReceiveCompSignal(signal);
         compTreeViewBlocker?.ReceiveCompSignal(signal);
     }
 
@@ -134,11 +134,11 @@ public class CompMainComponent : ThingComp
     {
         performSetup();
 
-        compComponentsPositionTracker.PostDeSpawn(map);
-        compHiddenable.PostDeSpawn(map);
-        compHideFromPlayer.PostDeSpawn(map);
+        ComponentsPositionTracker.PostDeSpawn(map);
+        Hiddenable.PostDeSpawn(map);
+        HideFromPlayer.PostDeSpawn(map);
         compViewBlockerWatcher?.PostDeSpawn(map);
-        compFieldOfViewWatcher?.PostDeSpawn(map);
+        FieldOfViewWatcher?.PostDeSpawn(map);
         compTreeViewBlocker?.PostDeSpawn(map);
     }
 
@@ -146,23 +146,23 @@ public class CompMainComponent : ThingComp
     {
         performSetup();
 
-        compComponentsPositionTracker.PostExposeData();
-        compHiddenable.PostExposeData();
-        compHideFromPlayer.PostExposeData();
+        ComponentsPositionTracker.PostExposeData();
+        Hiddenable.PostExposeData();
+        HideFromPlayer.PostExposeData();
 
         compViewBlockerWatcher?.PostExposeData();
-        compFieldOfViewWatcher?.PostExposeData();
+        FieldOfViewWatcher?.PostExposeData();
         compTreeViewBlocker?.PostExposeData();
         if (!Scribe.saver.savingForDebug)
         {
             return;
         }
 
-        var hasCompComponentsPositionTracker = compComponentsPositionTracker != null;
-        var hasCompHiddenable = compHiddenable != null;
-        var hasCompHideFromPlayer = compHideFromPlayer != null;
+        var hasCompComponentsPositionTracker = ComponentsPositionTracker != null;
+        var hasCompHiddenable = Hiddenable != null;
+        var hasCompHideFromPlayer = HideFromPlayer != null;
         var hasCompViewBlockerWatcher = compViewBlockerWatcher != null;
-        var hasCompFieldOfViewWatcher = compFieldOfViewWatcher != null;
+        var hasCompFieldOfViewWatcher = FieldOfViewWatcher != null;
         var hasCompTreeViewBlocker = compTreeViewBlocker != null;
         Scribe_Values.Look(ref hasCompComponentsPositionTracker, "hasCompComponentsPositionTracker");
         Scribe_Values.Look(ref hasCompHiddenable, "hasCompHiddenable");

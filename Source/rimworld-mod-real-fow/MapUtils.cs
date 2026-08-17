@@ -50,7 +50,6 @@ public static class MapUtils
                     pawnList.Add(things[j] as Pawn);
                 }
             }
-            //yield return things[j] as Pawn;
         }
 
         return pawnList;

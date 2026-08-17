@@ -1,3 +1,4 @@
+using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -5,20 +6,20 @@ namespace RimWorldRealFoW;
 
 public class CompHiddenable : ThingSubComp
 {
-    public bool hidden;
-
     private Map map;
 
     private MapComponentSeenFog mapComp;
 
+    public bool Hidden { get; private set; }
+
     public void Hide()
     {
-        if (hidden)
+        if (Hidden)
         {
             return;
         }
 
-        hidden = true;
+        Hidden = true;
         if (parent.def.drawerType != DrawerType.MapMeshOnly)
         {
             parent.Map.dynamicDrawManager.DeRegisterDrawable(parent);
@@ -42,12 +43,12 @@ public class CompHiddenable : ThingSubComp
 
     public void Show()
     {
-        if (!hidden)
+        if (!Hidden)
         {
             return;
         }
 
-        hidden = false;
+        Hidden = false;
         if (parent.def.drawerType != DrawerType.MapMeshOnly)
         {
             parent.Map.dynamicDrawManager.RegisterDrawable(parent);
@@ -70,22 +71,19 @@ public class CompHiddenable : ThingSubComp
             mapComp = map.GetMapComponentSeenFog();
         }
 
-        if (mapComp is not { initialized: true })
+        if (mapComp is not { Initialized: true })
         {
             return;
         }
 
-        foreach (var intVec in parent.OccupiedRect().Cells)
+        foreach (var intVec in parent.OccupiedRect().Cells.Where(intVec => intVec.InBounds(map)))
         {
-            if (intVec.InBounds(map))
-            {
-                map.mapDrawer.MapMeshDirty(intVec, MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Buildings |
-                                                   MapMeshFlagDefOf.GroundGlow |
-                                                   MapMeshFlagDefOf.Terrain | MapMeshFlagDefOf.Roofs |
-                                                   MapMeshFlagDefOf.Snow | MapMeshFlagDefOf.Pollution |
-                                                   MapMeshFlagDefOf.Zone | MapMeshFlagDefOf.PowerGrid |
-                                                   MapMeshFlagDefOf.BuildingsDamage | MapMeshFlagDefOf.Gas);
-            }
+            map.mapDrawer.MapMeshDirty(intVec, MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Buildings |
+                                               MapMeshFlagDefOf.GroundGlow |
+                                               MapMeshFlagDefOf.Terrain | MapMeshFlagDefOf.Roofs |
+                                               MapMeshFlagDefOf.Snow | MapMeshFlagDefOf.Pollution |
+                                               MapMeshFlagDefOf.Zone | MapMeshFlagDefOf.PowerGrid |
+                                               MapMeshFlagDefOf.BuildingsDamage | MapMeshFlagDefOf.Gas);
         }
     }
 }

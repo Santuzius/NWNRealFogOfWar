@@ -6,8 +6,11 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <DebugType>None</DebugType>
     <LangVersion>latest</LangVersion>
-    <FileVersion>1.6.9</FileVersion>
+    <FileVersion>1.6.10</FileVersion>
     <Copyright>© Luca De Petrillo 2026 - </Copyright>
+    <AssemblyVersion>1.6</AssemblyVersion>
+    <Product>(NWN) Real Fog of War (Continued)</Product>
+    <Nullable>warnings</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref">

@@ -8,6 +8,8 @@ Update of Luca De Petrillos mod https://steamcommunity.com/sharedfiles/filedetai
  - Wall and ceiling cameras can now be placed over other items, using the same mechanic as wall-mounted lights. Thanks to ODevil who made the original patch!
 - Added option to show threat letters when enemies are spotted instead of just hiding them.
 - Added option to not show fog of war during gravship takeoff and landing
+- Added option to let trees block vision as well. Only trees with 50%+ growth affects vision. NOTE: this will require even more of the CPU
+- Added support for [Dubs Mint Minimap](https://steamcommunity.com/sharedfiles/filedetails/?id=1662119905)
 
 ![Image](https://img.litet.net/logos/Notice.png)
 	

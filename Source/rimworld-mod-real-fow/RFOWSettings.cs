@@ -62,9 +62,6 @@ public class RfowSettings : ModSettings
 
     public static void DoSettingsWindowContents(Rect rect)
     {
-        //Listing_Standard row = new Listing_Standard(GameFont.Small);
-        //row.ColumnWidth = rect.width;
-        //  row.Begin(rect);
         rect.yMin += 15f;
         rect.yMax -= 15f;
 
@@ -194,8 +191,6 @@ public class RfowSettings : ModSettings
                 "treesBlockSightDesc".Translate());
         }
 
-        // row.CheckboxLabeled("doFilthReveal".Translate(), ref RFOWSettings.doFilthReveal, doFilthRevealDesc".Translate());
-
         if (row.ButtonText("RFWreset".Translate(), widthPct: 0.5f))
         {
             // reset all settings
@@ -292,7 +287,6 @@ public class RfowSettings : ModSettings
         Scribe_Values.Look(ref DelayAlertsUntilSeen, "delayAlertsUntilSeen");
         Scribe_Values.Look(ref ClearFogDuringTargeting, "clearFogDuringTargeting", true);
         Scribe_Values.Look(ref treesBlockSightValue, "treesBlockSight");
-        //Scribe_Values.Look(ref doFilthReveal, "doFilthReveal", true);
 
         applySettings();
     }
