@@ -27,7 +27,7 @@ public class CompMainComponent : ThingComp
 
         var category = parent.def.category;
         IsPlant = category == ThingCategory.Plant;
-        IsTreePlant = IsPlant && parent is Plant plant && plant.def.plant.IsTree;
+        IsTreePlant = IsPlant && parent is Plant plant && plant.def.plant.IsTree && !plant.def.plant.isStump;
 
         ComponentsPositionTracker = new CompComponentsPositionTracker
         {

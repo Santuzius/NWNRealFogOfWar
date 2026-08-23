@@ -1,5 +1,8 @@
 # Changelog for NWNRealFogOfWar
 
+1.6.11 - Stumps should not hide sight
+
+
 1.6.10 - Added some caching and some safer calculations of cell visiualizations. Code cleanup for readability.
 
 
