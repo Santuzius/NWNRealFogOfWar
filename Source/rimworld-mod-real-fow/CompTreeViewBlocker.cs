@@ -1,5 +1,6 @@
 using System;
 using RimWorld;
+using RimWorldRealFoW.Utils;
 using Verse;
 
 namespace RimWorldRealFoW;
@@ -27,12 +28,12 @@ public class CompTreeViewBlocker : ThingSubComp
         base.PostSpawnSetup(respawningAfterLoad);
         plant = parent as Plant;
 
-        if (plant == null || !plant.def.plant.IsTree)
+        if (!FoWThingUtils.PlantBlocksView(plant))
         {
             return;
         }
 
-        map = plant.Map;
+        map = plant?.Map;
         mapCompSeenFog = map.GetMapComponentSeenFog();
         lastUpdateTick = Find.TickManager.TicksGame;
         cachedGrowth = -1f;
@@ -46,7 +47,7 @@ public class CompTreeViewBlocker : ThingSubComp
     public override void ReceiveCompSignal(string signal)
     {
         base.ReceiveCompSignal(signal);
-        if (plant != null && plant.def.plant.IsTree)
+        if (FoWThingUtils.PlantBlocksView(plant))
         {
             checkGrowthTransition();
         }
@@ -56,7 +57,7 @@ public class CompTreeViewBlocker : ThingSubComp
     {
         base.CompTick();
 
-        if (plant == null || !plant.def.plant.IsTree)
+        if (!FoWThingUtils.PlantBlocksView(plant))
         {
             return;
         }
@@ -75,7 +76,7 @@ public class CompTreeViewBlocker : ThingSubComp
     public override void PostDeSpawn(Map map)
     {
         base.PostDeSpawn(map);
-        if (plant == null || !plant.def.plant.IsTree)
+        if (!FoWThingUtils.PlantBlocksView(plant))
         {
             return;
         }
@@ -86,19 +87,16 @@ public class CompTreeViewBlocker : ThingSubComp
             mapCompSeenFog = map.GetMapComponentSeenFog();
         }
 
-        // Deregister from the grid if we were registered
-        if (registeredWithGrid && mapCompSeenFog != null)
+        // Deregister from the grid and clear blocker cells if we were registered
+        if (!registeredWithGrid || mapCompSeenFog == null)
         {
-            var position = plant.Position;
-            mapCompSeenFog.DeregisterTreeViewBlocker(this, position.x, position.z);
-            registeredWithGrid = false;
+            return;
         }
 
-        // Make sure we're unregistered when despawned
-        if (registeredWithGrid && mapCompSeenFog != null)
-        {
-            updateViewBlockerCells(false);
-        }
+        var position = plant.Position;
+        mapCompSeenFog.DeregisterTreeViewBlocker(this, position.x, position.z);
+        updateViewBlockerCells(false);
+        registeredWithGrid = false;
     }
 
     private void checkGrowthTransition()
@@ -142,21 +140,26 @@ public class CompTreeViewBlocker : ThingSubComp
 
         blocksSight = shouldBlock;
 
-        if (blocksSight && !registeredWithGrid)
+        switch (blocksSight)
         {
-            // Register when tree reaches threshold
-            var position = plant.Position;
-            mapCompSeenFog.RegisterTreeViewBlocker(this, position.x, position.z);
-            registeredWithGrid = true;
-            updateViewBlockerCells(true);
-        }
-        else if (!blocksSight && registeredWithGrid)
-        {
-            // Unregister when tree falls below threshold
-            var position = plant.Position;
-            mapCompSeenFog.DeregisterTreeViewBlocker(this, position.x, position.z);
-            registeredWithGrid = false;
-            updateViewBlockerCells(false);
+            case true when !registeredWithGrid:
+            {
+                // Register when tree reaches threshold
+                var position = plant.Position;
+                mapCompSeenFog.RegisterTreeViewBlocker(this, position.x, position.z);
+                registeredWithGrid = true;
+                updateViewBlockerCells(true);
+                break;
+            }
+            case false when registeredWithGrid:
+            {
+                // Unregister when tree falls below threshold
+                var position = plant.Position;
+                mapCompSeenFog.DeregisterTreeViewBlocker(this, position.x, position.z);
+                registeredWithGrid = false;
+                updateViewBlockerCells(false);
+                break;
+            }
         }
     }
 

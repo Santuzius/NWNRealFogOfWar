@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RimWorld;
 using Verse;
 
 namespace RimWorldRealFoW.Utils;
@@ -6,6 +7,21 @@ namespace RimWorldRealFoW.Utils;
 public static class FoWThingUtils
 {
     private static readonly Dictionary<IntVec3, IntVec3[]> peekArrayCache = new(15);
+
+    public static bool PlantBlocksView(Plant plant)
+    {
+        if (plant?.def.plant == null)
+        {
+            return false;
+        }
+
+        if (!plant.def.plant.IsTree)
+        {
+            return false;
+        }
+
+        return !plant.def.plant.isStump;
+    }
 
     public static IntVec3[] GetPeekArray(IntVec3 intVec3)
     {

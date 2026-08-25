@@ -1,5 +1,8 @@
 # Changelog for NWNRealFogOfWar
 
+1.6.12 - More consistent tree logic
+
+
 1.6.11 - Stumps should not hide sight
 
 

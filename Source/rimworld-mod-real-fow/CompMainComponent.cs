@@ -1,4 +1,5 @@
 using RimWorld;
+using RimWorldRealFoW.Utils;
 using Verse;
 
 namespace RimWorldRealFoW;
@@ -27,7 +28,7 @@ public class CompMainComponent : ThingComp
 
         var category = parent.def.category;
         IsPlant = category == ThingCategory.Plant;
-        IsTreePlant = IsPlant && parent is Plant plant && plant.def.plant.IsTree && !plant.def.plant.isStump;
+        IsTreePlant = IsPlant && parent is Plant plant && FoWThingUtils.PlantBlocksView(plant);
 
         ComponentsPositionTracker = new CompComponentsPositionTracker
         {
