@@ -12,20 +12,26 @@ public class CompFieldOfViewWatcher : ThingSubComp
 {
     private static readonly IntVec3 iv3Invalid = IntVec3.Invalid;
 
-    private float baseViewRange;
+    // Clear the trees the pawn is touching, so it can see past its own cover. Not walls, that would open a window through them
+    // Scratch buffers for the peek pass, shared since the FoV is only computed on the main thread
+    private static bool[] scratchTreeMask;
 
-    private Building building;
-
-    private bool calculated;
+    private static bool[] scratchPeekMap;
     //private ThingDef def;
 
     // Cells cleared around the pawn while its FoV is cast, see clearOwnCover
     private readonly int[] clearedCoverCells = new int[8];
 
-    private int clearedCoverCount;
+    private float baseViewRange;
+
+    private Building building;
+
+    private bool calculated;
 
 
     private PawnCapacitiesHandler capacities;
+
+    private int clearedCoverCount;
 
     private CompFlickable compFlickable;
 
@@ -142,11 +148,8 @@ public class CompFieldOfViewWatcher : ThingSubComp
         else if (compProvideVision != null)
         {
             thingType = ThingType.VisionProvider;
-            if (building != null)
-            {
-                building.def.specialDisplayRadius =
-                    (compProvideVision.Props.viewRadius * RfowSettings.BuildingVisionModifier) - 0.1f;
-            }
+            building?.def.specialDisplayRadius =
+                (compProvideVision.Props.viewRadius * RfowSettings.BuildingVisionModifier) - 0.1f;
         }
         else if (building != null)
         {
@@ -586,7 +589,7 @@ public class CompFieldOfViewWatcher : ThingSubComp
             if (!roofGrid.Roofed(position.x, position.z) && !ignoreWeather)
             {
                 var curWeatherAccuracyMultiplier = weatherManager.CurWeatherAccuracyMultiplier;
-                if (curWeatherAccuracyMultiplier != 1f)
+                if (!curWeatherAccuracyMultiplier.Equals(1f))
                 {
                     rangeModifier *= Mathf.Lerp(0.5f, 1f, curWeatherAccuracyMultiplier);
                 }
@@ -727,18 +730,17 @@ public class CompFieldOfViewWatcher : ThingSubComp
                 if (peekDirections != null)
                 {
                     // Peek around cover, but only reveal cells that no tree hides from the pawn itself
-                    var area = newViewArea;
-                    var treeMask = getScratch(ref scratchTreeMask, area);
-                    var peekMap = getScratch(ref scratchPeekMap, area);
+                    var treeMask = getScratch(ref scratchTreeMask, newViewArea);
+                    var peekMap = getScratch(ref scratchPeekMap, newViewArea);
 
                     ShadowCaster.computeFieldOfViewWithShadowCasting(position.x, position.z, intRadius,
                         treeBlockerCells, sizeX, mapSizeY, false, null, null, null, treeMask,
                         newViewRecMinX, newViewRecMinZ, newViewWidth, null, 0, 0, 0, 0, 0);
 
                     var peeked = false;
-                    for (var k = 0; k < peekDirections.Length; k++)
+                    foreach (var intVec3 in peekDirections)
                     {
-                        var peekPos = position + peekDirections[k];
+                        var peekPos = position + intVec3;
                         if (peekPos is not { x: >= 0, z: >= 0 } || peekPos.x > mapWidth || peekPos.z > mapHeight
                             || !peekPos.IsInside(thing) && viewBlockerCells[(peekPos.z * sizeX) + peekPos.x])
                         {
@@ -753,7 +755,7 @@ public class CompFieldOfViewWatcher : ThingSubComp
 
                     if (peeked)
                     {
-                        mergePeekedCells(peekMap, treeMask, newMapView, area, newViewRecMinX, newViewRecMinZ,
+                        mergePeekedCells(peekMap, treeMask, newMapView, newViewArea, newViewRecMinX, newViewRecMinZ,
                             newViewWidth, sizeX, mapSizeY, faction, factionShownCells, oldMapView, oldViewRecMinX,
                             oldViewRecMaxX, oldViewRecMinZ, oldViewRecMaxZ, oldViewWidth);
                     }
@@ -795,12 +797,6 @@ public class CompFieldOfViewWatcher : ThingSubComp
         viewRect.maxZ = newViewRecMaxZ;
         viewRect.minZ = newViewRecMinZ;
     }
-
-    // Clear the trees the pawn is touching, so it can see past its own cover. Not walls, that would open a window through them
-    // Scratch buffers for the peek pass, shared since the FoV is only computed on the main thread
-    private static bool[] scratchTreeMask;
-
-    private static bool[] scratchPeekMap;
 
     private static bool[] getScratch(ref bool[] buffer, int area)
     {
@@ -927,187 +923,185 @@ public class CompFieldOfViewWatcher : ThingSubComp
         if (oldViewMap == null || lastPosition != parent.Position || lastPeekDirections != null)
         {
             UpdateFoV(true);
+            return;
         }
-        else
+
+        var radius = LastSightRange;
+
+        var num = mapSizeX;
+        var num2 = mapSizeZ;
+
+        var position = thingParent.Position;
+        var faction = lastFaction;
+        var factionShownCells = lastFactionShownCells;
+
+        var cellRect = thingParent.OccupiedRect();
+
+        var minZ = viewRect.minZ;
+        var maxZ = viewRect.maxZ;
+        var minX = viewRect.minX;
+        var maxX = viewRect.maxX;
+
+        var width = viewRect.Width;
+        var area = viewRect.Area;
+
+        if (newViewMap == null || newViewMap.Length < area)
         {
-            var radius = LastSightRange;
-            var peekDirection = lastPeekDirections;
-
-            var num = mapSizeX;
-            var num2 = mapSizeZ;
-
-            var position = thingParent.Position;
-            var faction = lastFaction;
-            var factionShownCells = lastFactionShownCells;
-
-            var cellRect = thingParent.OccupiedRect();
-
-            var minZ = viewRect.minZ;
-            var maxZ = viewRect.maxZ;
-            var minX = viewRect.minX;
-            var maxX = viewRect.maxX;
-
-            var width = viewRect.Width;
-            var area = viewRect.Area;
-
-            if (newViewMap == null || newViewMap.Length < area)
+            newViewMap = new bool[(int)(area * 1.2f)];
+            if (viewMapSwitch)
             {
-                newViewMap = new bool[(int)(area * 1.2f)];
-                if (viewMapSwitch)
-                {
-                    viewMap2 = newViewMap;
-                }
-                else
-                {
-                    viewMap1 = newViewMap;
-                }
+                viewMap2 = newViewMap;
             }
-
-            for (var i = cellRect.minX; i <= cellRect.maxX; i++)
+            else
             {
-                for (var j = cellRect.minZ; j <= cellRect.maxZ; j++)
-                {
-                    var num3 = ((j - minZ) * width) + (i - minX);
-                    newViewMap[num3] = true;
-                    oldViewMap[num3] = false;
-                }
+                viewMap1 = newViewMap;
             }
-
-            var viewBlockerCells = mapCompSeenFog.viewBlockerCells;
-            viewPositions[0] = position;
-
-            // peekDirection is always null here, peeking pawns took the full recompute above
-            const int sightRange = 1;
-
-            var num5 = map.Size.x - 1;
-            var num6 = map.Size.z - 1;
-            var q1Updated = false;
-            var q2Updated = false;
-            var q3Updated = false;
-            var q4Updated = false;
-            for (var l = 0; l < sightRange; l++)
-            {
-                ref var ptr = ref viewPositions[l];
-                if (ptr is not { x: >= 0, z: >= 0 }
-                    || ptr.x > num5 || ptr.z > num6
-                    || l != 0 && !ptr.IsInside(thingParent) && viewBlockerCells[(ptr.z * num) + ptr.x])
-                {
-                    continue;
-                }
-
-                if (ptr.x <= targetPos.x)
-                {
-                    if (ptr.z <= targetPos.z)
-                    {
-                        q1Updated = true;
-                    }
-                    else
-                    {
-                        q4Updated = true;
-                    }
-                }
-                else
-                {
-                    if (ptr.z <= targetPos.z)
-                    {
-                        q2Updated = true;
-                    }
-                    else
-                    {
-                        q3Updated = true;
-                    }
-                }
-            }
-
-            for (var m = 0; m < sightRange; m++)
-            {
-                ref var ptr2 = ref viewPositions[m];
-                if (ptr2 is not { x: >= 0, z: >= 0 } || ptr2.x > num5 || ptr2.z > num6 ||
-                    m != 0 && !ptr2.IsInside(thingParent) && viewBlockerCells[(ptr2.z * num) + ptr2.x])
-                {
-                    continue;
-                }
-
-                if (q1Updated)
-                {
-                    ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
-                        num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
-                        oldViewMap, minX, maxX, minZ, maxZ, width, 0);
-                    ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
-                        num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
-                        oldViewMap, minX, maxX, minZ, maxZ, width, 1);
-                }
-
-                if (q2Updated)
-                {
-                    ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
-                        num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
-                        oldViewMap, minX, maxX, minZ, maxZ, width, 2);
-                    ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
-                        num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
-                        oldViewMap, minX, maxX, minZ, maxZ, width, 3);
-                }
-
-                if (q3Updated)
-                {
-                    ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
-                        num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
-                        oldViewMap, minX, maxX, minZ, maxZ, width, 4);
-                    ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
-                        num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
-                        oldViewMap, minX, maxX, minZ, maxZ, width, 5);
-                }
-
-                if (!q4Updated)
-                {
-                    continue;
-                }
-
-                ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
-                    num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
-                    oldViewMap, minX, maxX, minZ, maxZ, width, 6);
-                ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
-                    num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
-                    oldViewMap, minX, maxX, minZ, maxZ, width, 7);
-            }
-
-            for (var n = 0; n < area; n++)
-            {
-                ref var ptr3 = ref oldViewMap[n];
-                if (!ptr3)
-                {
-                    continue;
-                }
-
-                ptr3 = false;
-                var num7 = minX + (n % width);
-                var num8 = minZ + (n / width);
-                byte b;
-                if (position.x <= num7)
-                {
-                    b = position.z <= num8 ? (byte)1 : (byte)4;
-                }
-                else
-                {
-                    b = position.z <= num8 ? (byte)2 : (byte)3;
-                }
-
-                if (!q1Updated && b == 1 || !q2Updated && b == 2 || !q3Updated && b == 3 ||
-                    !q4Updated && b == 4)
-                {
-                    newViewMap[n] = true;
-                }
-                else
-                {
-                    if (num8 >= 0 && num8 <= num2 && num7 >= 0 && num7 <= num)
-                    {
-                        mapCompSeenFog.DecrementSeen(faction, factionShownCells, (num8 * num) + num7);
-                    }
-                }
-            }
-
-            viewMapSwitch = !viewMapSwitch;
         }
+
+        for (var i = cellRect.minX; i <= cellRect.maxX; i++)
+        {
+            for (var j = cellRect.minZ; j <= cellRect.maxZ; j++)
+            {
+                var num3 = ((j - minZ) * width) + (i - minX);
+                newViewMap[num3] = true;
+                oldViewMap[num3] = false;
+            }
+        }
+
+        var viewBlockerCells = mapCompSeenFog.viewBlockerCells;
+        viewPositions[0] = position;
+
+        // peekDirection is always null here, peeking pawns took the full recompute above
+        const int sightRange = 1;
+
+        var num5 = map.Size.x - 1;
+        var num6 = map.Size.z - 1;
+        var q1Updated = false;
+        var q2Updated = false;
+        var q3Updated = false;
+        var q4Updated = false;
+        for (var l = 0; l < sightRange; l++)
+        {
+            ref var ptr = ref viewPositions[l];
+            if (ptr is not { x: >= 0, z: >= 0 }
+                || ptr.x > num5 || ptr.z > num6
+                || l != 0 && !ptr.IsInside(thingParent) && viewBlockerCells[(ptr.z * num) + ptr.x])
+            {
+                continue;
+            }
+
+            if (ptr.x <= targetPos.x)
+            {
+                if (ptr.z <= targetPos.z)
+                {
+                    q1Updated = true;
+                }
+                else
+                {
+                    q4Updated = true;
+                }
+            }
+            else
+            {
+                if (ptr.z <= targetPos.z)
+                {
+                    q2Updated = true;
+                }
+                else
+                {
+                    q3Updated = true;
+                }
+            }
+        }
+
+        for (var m = 0; m < sightRange; m++)
+        {
+            ref var ptr2 = ref viewPositions[m];
+            if (ptr2 is not { x: >= 0, z: >= 0 } || ptr2.x > num5 || ptr2.z > num6 ||
+                m != 0 && !ptr2.IsInside(thingParent) && viewBlockerCells[(ptr2.z * num) + ptr2.x])
+            {
+                continue;
+            }
+
+            if (q1Updated)
+            {
+                ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
+                    num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
+                    oldViewMap, minX, maxX, minZ, maxZ, width, 0);
+                ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
+                    num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
+                    oldViewMap, minX, maxX, minZ, maxZ, width, 1);
+            }
+
+            if (q2Updated)
+            {
+                ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
+                    num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
+                    oldViewMap, minX, maxX, minZ, maxZ, width, 2);
+                ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
+                    num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
+                    oldViewMap, minX, maxX, minZ, maxZ, width, 3);
+            }
+
+            if (q3Updated)
+            {
+                ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
+                    num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
+                    oldViewMap, minX, maxX, minZ, maxZ, width, 4);
+                ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
+                    num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
+                    oldViewMap, minX, maxX, minZ, maxZ, width, 5);
+            }
+
+            if (!q4Updated)
+            {
+                continue;
+            }
+
+            ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
+                num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
+                oldViewMap, minX, maxX, minZ, maxZ, width, 6);
+            ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, radius, viewBlockerCells, num,
+                num2, true, mapCompSeenFog, faction, factionShownCells, newViewMap, minX, minZ, width,
+                oldViewMap, minX, maxX, minZ, maxZ, width, 7);
+        }
+
+        for (var n = 0; n < area; n++)
+        {
+            ref var ptr3 = ref oldViewMap[n];
+            if (!ptr3)
+            {
+                continue;
+            }
+
+            ptr3 = false;
+            var num7 = minX + (n % width);
+            var num8 = minZ + (n / width);
+            byte b;
+            if (position.x <= num7)
+            {
+                b = position.z <= num8 ? (byte)1 : (byte)4;
+            }
+            else
+            {
+                b = position.z <= num8 ? (byte)2 : (byte)3;
+            }
+
+            if (!q1Updated && b == 1 || !q2Updated && b == 2 || !q3Updated && b == 3 ||
+                !q4Updated && b == 4)
+            {
+                newViewMap[n] = true;
+            }
+            else
+            {
+                if (num8 >= 0 && num8 <= num2 && num7 >= 0 && num7 <= num)
+                {
+                    mapCompSeenFog.DecrementSeen(faction, factionShownCells, (num8 * num) + num7);
+                }
+            }
+        }
+
+        viewMapSwitch = !viewMapSwitch;
     }
 
     private void unseeSeenCells(Faction faction, short[] factionShownCells)

@@ -1,5 +1,8 @@
 # Changelog for NWNRealFogOfWar
 
+1.6.13 - Fixed issue with peaking around corners/trees. Thanks Santuzius
+
+
 1.6.12 - More consistent tree logic
 
 

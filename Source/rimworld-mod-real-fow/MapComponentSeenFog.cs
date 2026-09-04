@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using RimWorldRealFoW.Utils;
@@ -31,11 +30,11 @@ public class MapComponentSeenFog : MapComponent
 
     //Camera building
     private readonly List<Building_SurveillanceCamera> surveillanceCameras = [];
-    private readonly List<CompTreeViewBlocker>[] treeViewBlockerGrid;
-    public readonly bool[] viewBlockerCells;
 
     // Same as viewBlockerCells, but trees only
     public readonly bool[] treeBlockerCells;
+    private readonly List<CompTreeViewBlocker>[] treeViewBlockerGrid;
+    public readonly bool[] viewBlockerCells;
     private int currentGameTick;
 
     private short[][] factionsShownCells;
@@ -145,17 +144,7 @@ public class MapComponentSeenFog : MapComponent
 
     public int SurveillanceCameraCount()
     {
-        //Linq is cool but seem to have performance issue, a good old for loop seem better
-        var count = 0;
-        foreach (var camera in surveillanceCameras.Where(c => c.IsPowered()))
-        {
-            if (camera.IsPowered())
-            {
-                count++;
-            }
-        }
-
-        return count;
+        return surveillanceCameras.Count(c => c.IsPowered());
     }
 
     private short[] getFactionFullShow(Faction faction)
