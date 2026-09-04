@@ -185,6 +185,7 @@ public class CompTreeViewBlocker : ThingSubComp
         if (position is { x: >= 0, z: >= 0 } && position.x < mapSizeX && position.z < mapSizeZ)
         {
             viewBlockerCells[idx] = blockView;
+            mapCompSeenFog.treeBlockerCells[idx] = blockView;
         }
 
         // Notify watchers that might be affected

@@ -19,6 +19,11 @@ public class CompFieldOfViewWatcher : ThingSubComp
     private bool calculated;
     //private ThingDef def;
 
+    // Cells cleared around the pawn while its FoV is cast, see clearOwnCover
+    private readonly int[] clearedCoverCells = new int[8];
+
+    private int clearedCoverCount;
+
 
     private PawnCapacitiesHandler capacities;
 
@@ -702,36 +707,63 @@ public class CompFieldOfViewWatcher : ThingSubComp
         if (intRadius > 0)
         {
             var viewBlockerCells = mapCompSeenFog.viewBlockerCells;
-            viewPositions[0] = position;
-            int viewPositionCount;
-            if (peekDirections == null)
-            {
-                viewPositionCount = 1;
-            }
-            else
-            {
-                viewPositionCount = 1 + peekDirections.Length;
-                for (var k = 0; k < viewPositionCount - 1; k++)
-                {
-                    viewPositions[1 + k] = position + peekDirections[k];
-                }
-            }
+            var treeBlockerCells = mapCompSeenFog.treeBlockerCells;
+            var coverCleared = peekDirections != null && clearOwnCover(viewBlockerCells, treeBlockerCells, position);
 
             var mapWidth = map.Size.x - 1;
             var mapHeight = map.Size.z - 1;
-            for (var l = 0; l < viewPositionCount; l++)
+
+            try
             {
-                ref var ptr2 = ref viewPositions[l];
-                if (
-                    ptr2 is { x: >= 0, z: >= 0 }
-                    && ptr2.x <= mapWidth
-                    && ptr2.z <= mapHeight
-                    && (l == 0 || ptr2.IsInside(thing) || !viewBlockerCells[(ptr2.z * sizeX) + ptr2.x]))
+                if (position is { x: >= 0, z: >= 0 } && position.x <= mapWidth && position.z <= mapHeight)
                 {
-                    ShadowCaster.computeFieldOfViewWithShadowCasting(ptr2.x, ptr2.z, intRadius, viewBlockerCells,
+                    ShadowCaster.computeFieldOfViewWithShadowCasting(position.x, position.z, intRadius,
+                        viewBlockerCells,
                         sizeX, mapSizeY, true, mapCompSeenFog, faction, factionShownCells, newMapView,
                         newViewRecMinX, newViewRecMinZ, newViewWidth, oldMapView, oldViewRecMinX, oldViewRecMaxX,
                         oldViewRecMinZ, oldViewRecMaxZ, oldViewWidth);
+                }
+
+                if (peekDirections != null)
+                {
+                    // Peek around cover, but only reveal cells that no tree hides from the pawn itself
+                    var area = newViewArea;
+                    var treeMask = getScratch(ref scratchTreeMask, area);
+                    var peekMap = getScratch(ref scratchPeekMap, area);
+
+                    ShadowCaster.computeFieldOfViewWithShadowCasting(position.x, position.z, intRadius,
+                        treeBlockerCells, sizeX, mapSizeY, false, null, null, null, treeMask,
+                        newViewRecMinX, newViewRecMinZ, newViewWidth, null, 0, 0, 0, 0, 0);
+
+                    var peeked = false;
+                    for (var k = 0; k < peekDirections.Length; k++)
+                    {
+                        var peekPos = position + peekDirections[k];
+                        if (peekPos is not { x: >= 0, z: >= 0 } || peekPos.x > mapWidth || peekPos.z > mapHeight
+                            || !peekPos.IsInside(thing) && viewBlockerCells[(peekPos.z * sizeX) + peekPos.x])
+                        {
+                            continue;
+                        }
+
+                        peeked = true;
+                        ShadowCaster.computeFieldOfViewWithShadowCasting(peekPos.x, peekPos.z, intRadius,
+                            viewBlockerCells, sizeX, mapSizeY, false, null, null, null, peekMap,
+                            newViewRecMinX, newViewRecMinZ, newViewWidth, null, 0, 0, 0, 0, 0);
+                    }
+
+                    if (peeked)
+                    {
+                        mergePeekedCells(peekMap, treeMask, newMapView, area, newViewRecMinX, newViewRecMinZ,
+                            newViewWidth, sizeX, mapSizeY, faction, factionShownCells, oldMapView, oldViewRecMinX,
+                            oldViewRecMaxX, oldViewRecMinZ, oldViewRecMaxZ, oldViewWidth);
+                    }
+                }
+            }
+            finally
+            {
+                if (coverCleared)
+                {
+                    restoreOwnCover(viewBlockerCells, treeBlockerCells);
                 }
             }
         }
@@ -764,6 +796,122 @@ public class CompFieldOfViewWatcher : ThingSubComp
         viewRect.minZ = newViewRecMinZ;
     }
 
+    // Clear the trees the pawn is touching, so it can see past its own cover. Not walls, that would open a window through them
+    // Scratch buffers for the peek pass, shared since the FoV is only computed on the main thread
+    private static bool[] scratchTreeMask;
+
+    private static bool[] scratchPeekMap;
+
+    private static bool[] getScratch(ref bool[] buffer, int area)
+    {
+        if (buffer == null || buffer.Length < area)
+        {
+            buffer = new bool[(int)(area * 1.2f)];
+        }
+        else
+        {
+            Array.Clear(buffer, 0, area);
+        }
+
+        return buffer;
+    }
+
+    // Add the peeked cells the tree mask allows, with the same seen-cell bookkeeping ShadowCaster does inline
+    private void mergePeekedCells(bool[] peekMap, bool[] treeMask, bool[] newMapView, int area,
+        int newViewRecMinX, int newViewRecMinZ, int newViewWidth, int sizeX, int mapSizeY, Faction faction,
+        short[] factionShownCells, bool[] oldMapView, int oldViewRecMinX, int oldViewRecMaxX, int oldViewRecMinZ,
+        int oldViewRecMaxZ, int oldViewWidth)
+    {
+        for (var i = 0; i < area; i++)
+        {
+            if (!peekMap[i] || !treeMask[i] || newMapView[i])
+            {
+                continue;
+            }
+
+            var x = newViewRecMinX + (i % newViewWidth);
+            var z = newViewRecMinZ + (i / newViewWidth);
+            if (x < 0 || z < 0 || x >= sizeX || z >= mapSizeY)
+            {
+                continue;
+            }
+
+            newMapView[i] = true;
+            var cellIdx = (z * sizeX) + x;
+
+            if (oldMapView == null || x < oldViewRecMinX || z < oldViewRecMinZ || x > oldViewRecMaxX ||
+                z > oldViewRecMaxZ)
+            {
+                mapCompSeenFog.IncrementSeen(faction, factionShownCells, cellIdx);
+                continue;
+            }
+
+            ref var oldValue = ref oldMapView[((z - oldViewRecMinZ) * oldViewWidth) + (x - oldViewRecMinX)];
+            if (!oldValue)
+            {
+                mapCompSeenFog.IncrementSeen(faction, factionShownCells, cellIdx);
+            }
+            else
+            {
+                oldValue = false;
+            }
+        }
+    }
+
+    private bool clearOwnCover(bool[] viewBlockerCells, bool[] treeBlockerCells, IntVec3 position)
+    {
+        clearedCoverCount = 0;
+
+        var maxX = mapSizeX - 1;
+        var maxZ = mapSizeZ - 1;
+        for (var dz = -1; dz <= 1; dz++)
+        {
+            var z = position.z + dz;
+            if (z < 0 || z > maxZ)
+            {
+                continue;
+            }
+
+            for (var dx = -1; dx <= 1; dx++)
+            {
+                if (dx == 0 && dz == 0)
+                {
+                    continue;
+                }
+
+                var x = position.x + dx;
+                if (x < 0 || x > maxX)
+                {
+                    continue;
+                }
+
+                var idx = (z * mapSizeX) + x;
+                if (!viewBlockerCells[idx] || !mapCompSeenFog.IsTreeViewBlocker(idx))
+                {
+                    continue;
+                }
+
+                viewBlockerCells[idx] = false;
+                treeBlockerCells[idx] = false;
+                clearedCoverCells[clearedCoverCount++] = idx;
+            }
+        }
+
+        return clearedCoverCount != 0;
+    }
+
+    private void restoreOwnCover(bool[] viewBlockerCells, bool[] treeBlockerCells)
+    {
+        for (var i = 0; i < clearedCoverCount; i++)
+        {
+            var idx = clearedCoverCells[i];
+            viewBlockerCells[idx] = true;
+            treeBlockerCells[idx] = true;
+        }
+
+        clearedCoverCount = 0;
+    }
+
     public void RefreshFovTarget(ref IntVec3 targetPos)
     {
         if (!setupDone)
@@ -775,7 +923,8 @@ public class CompFieldOfViewWatcher : ThingSubComp
 
         var oldViewMap = viewMapSwitch ? viewMap1 : viewMap2;
         var newViewMap = viewMapSwitch ? viewMap2 : viewMap1;
-        if (oldViewMap == null || lastPosition != parent.Position)
+        // Peeking pawns need the tree mask from CalculateFoV, which this incremental refresh cannot express
+        if (oldViewMap == null || lastPosition != parent.Position || lastPeekDirections != null)
         {
             UpdateFoV(true);
         }
@@ -826,19 +975,9 @@ public class CompFieldOfViewWatcher : ThingSubComp
 
             var viewBlockerCells = mapCompSeenFog.viewBlockerCells;
             viewPositions[0] = position;
-            int sightRange;
-            if (peekDirection == null)
-            {
-                sightRange = 1;
-            }
-            else
-            {
-                sightRange = 1 + peekDirection.Length;
-                for (var k = 0; k < sightRange - 1; k++)
-                {
-                    viewPositions[1 + k] = position + peekDirection[k];
-                }
-            }
+
+            // peekDirection is always null here, peeking pawns took the full recompute above
+            const int sightRange = 1;
 
             var num5 = map.Size.x - 1;
             var num6 = map.Size.z - 1;

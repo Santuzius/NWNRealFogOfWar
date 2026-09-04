@@ -33,6 +33,9 @@ public class MapComponentSeenFog : MapComponent
     private readonly List<Building_SurveillanceCamera> surveillanceCameras = [];
     private readonly List<CompTreeViewBlocker>[] treeViewBlockerGrid;
     public readonly bool[] viewBlockerCells;
+
+    // Same as viewBlockerCells, but trees only
+    public readonly bool[] treeBlockerCells;
     private int currentGameTick;
 
     private short[][] factionsShownCells;
@@ -69,6 +72,7 @@ public class MapComponentSeenFog : MapComponent
 
         knownCells = new bool[mapCellLength];
         viewBlockerCells = new bool[mapCellLength];
+        treeBlockerCells = new bool[mapCellLength];
         playerVisibilityChangeTick = new int[mapCellLength];
         mineDesignationGrid = new Designation[mapCellLength];
         idxToCellCache = new IntVec3[mapCellLength];
@@ -264,6 +268,12 @@ public class MapComponentSeenFog : MapComponent
         {
             treeViewBlockerGrid[(z * mapSizeX) + x].Remove(comp);
         }
+    }
+
+    // True if this cell is blocked by a tree
+    public bool IsTreeViewBlocker(int idx)
+    {
+        return idx >= 0 && idx < treeViewBlockerGrid.Length && treeViewBlockerGrid[idx].Count != 0;
     }
 
     public void RegisterMineDesignation(Designation des)
